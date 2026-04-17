@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const pillars = [
   {
     id: "F3",
@@ -5,6 +7,7 @@ const pillars = [
     description:
       "Normalize inbound prospects, score fit, draft personalized outreach, and hold everything in an approval queue before anything gets sent.",
     accent: "from-amber-200 via-orange-100 to-white",
+    href: "/acquisition",
   },
   {
     id: "F1",
@@ -12,6 +15,7 @@ const pillars = [
     description:
       "Assemble attorney-reviewed templates with profile defaults, project variables, optional clauses, and a plain-English summary.",
     accent: "from-emerald-200 via-teal-100 to-white",
+    href: "/contracts",
   },
   {
     id: "F2",
@@ -19,6 +23,7 @@ const pillars = [
     description:
       "Route single-use signing links, capture evidence, countersign automatically, and archive signed files with verifiable hashes.",
     accent: "from-sky-200 via-cyan-100 to-white",
+    href: "/signing",
   },
   {
     id: "F4",
@@ -26,6 +31,7 @@ const pillars = [
     description:
       "Track recurring tools, categorize spend, alert on budget thresholds, and highlight subscriptions that are no longer delivering value.",
     accent: "from-violet-200 via-fuchsia-100 to-white",
+    href: "/expenses",
   },
 ];
 
@@ -49,25 +55,30 @@ export function FeaturePillars() {
 
       <div className="grid gap-4 md:grid-cols-2">
         {pillars.map((pillar) => (
-          <article
+          <Link
             key={pillar.id}
-            className={`rounded-[1.5rem] border border-slate-200/70 bg-gradient-to-br ${pillar.accent} p-5`}
+            href={pillar.href}
+            className={`group block transition-transform duration-300 hover:-translate-y-1`}
           >
-            <div className="flex items-center justify-between gap-3">
-              <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-semibold tracking-[0.2em] text-white">
-                {pillar.id}
-              </span>
-              <span className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
-                v1 foundation
-              </span>
-            </div>
-            <h3 className="mt-4 text-xl font-semibold text-slate-950">
-              {pillar.title}
-            </h3>
-            <p className="mt-3 text-sm leading-6 text-slate-700">
-              {pillar.description}
-            </p>
-          </article>
+            <article
+              className={`h-full rounded-[1.5rem] border border-slate-200/70 bg-gradient-to-br ${pillar.accent} p-5 shadow-sm transition-shadow duration-300 group-hover:shadow-md`}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-semibold tracking-[0.2em] text-white">
+                  {pillar.id}
+                </span>
+                <span className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
+                  v1 foundation
+                </span>
+              </div>
+              <h3 className="mt-4 text-xl font-semibold text-slate-950">
+                {pillar.title}
+              </h3>
+              <p className="mt-3 text-sm leading-6 text-slate-700">
+                {pillar.description}
+              </p>
+            </article>
+          </Link>
         ))}
       </div>
     </section>
