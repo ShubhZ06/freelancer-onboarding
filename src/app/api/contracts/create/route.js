@@ -60,8 +60,14 @@ async function documensoFetch(path, options = {}) {
         : typeof body === "string"
           ? body
           : JSON.stringify(body);
+
+    const hint =
+      res.status === 404 && path.startsWith("/envelope")
+        ? " Hint: DOCUMENSO_BASE_URL should be the Documenso host origin (e.g. https://app.documenso.com), without /api/v1 or /api/v2."
+        : "";
+
     throw new Error(
-      `Documenso API error [${res.status}] at ${path}: ${msg}`
+      `Documenso API error [${res.status}] at ${path}: ${msg}${hint}`
     );
   }
 
@@ -151,9 +157,7 @@ export async function POST(request) {
         },
       ],
       meta: {
-        // Use NONE so Documenso does NOT email the client — we handle
-        // distribution ourselves via the embedded signing link.
-        distributionMethod: "NONE",
+        distributionMethod: "EMAIL",
       },
     };
 
@@ -180,26 +184,38 @@ export async function POST(request) {
       );
     }
 
-    // 6. Retrieve the full envelope to get the recipient signing token --------
+    // 6. Send/finalize the envelope so recipients are notified and links activate
+    // Some Documenso workspaces leave newly created envelopes in Draft until this call.
+    await documensoFetch(`/envelope/${envelopeId}/send`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    // 7. Retrieve the finalized envelope to get the recipient signing details
     const envelope = await documensoFetch(`/envelope/${envelopeId}`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
 
     const signer = envelope.recipients?.find(
-      (r) => r.role === "SIGNER" && r.email === clientEmail
+      (r) =>
+        r.role === "SIGNER" &&
+        String(r.email || "").toLowerCase() === clientEmail.toLowerCase()
     );
 
-    if (!signer?.token) {
+    const signerToken = signer?.token || signer?.signingToken || null;
+    const signingUrl =
+      signer?.signingUrl ||
+      signer?.url ||
+      (signerToken ? `${DOCUMENSO_BASE_URL}/sign/${signerToken}` : null);
+
+    if (!signingUrl) {
       throw new Error(
-        "Could not locate a signing token for the recipient on the created envelope."
+        "Could not locate a valid signing URL for the recipient on the finalized envelope."
       );
     }
 
-    // 7. Construct the embedded signing URL -----------------------------------
-    const signingUrl = `${DOCUMENSO_BASE_URL}/sign/${signer.token}`;
-
-    // 7b. Persist the contract record to MongoDB ------------------------------
+    // 8. Persist the contract record to MongoDB ------------------------------
     //   This record is what the Documenso webhook (POST /api/webhooks/documenso)
     //   matches against when the document is completed. Without this step,
     //   updateOne({ documentId }) will always return matchedCount: 0.
@@ -236,7 +252,7 @@ export async function POST(request) {
       );
     }
 
-    // 8. Return the result to the frontend ------------------------------------
+    // 9. Return the result to the frontend ------------------------------------
     return Response.json(
       {
         signingUrl,

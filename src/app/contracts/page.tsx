@@ -1,12 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import { WorkspaceShell } from "@/components/navigation";
 import { PageSection } from "@/components/workspace";
 import { ContractWizard } from "@/components/contracts/ContractWizard";
 import { ContractCard, type ContractData } from "@/components/contracts";
 
 // Demo contracts -- replace with real data from MongoDB / API in production
-const DEMO_CONTRACTS: (ContractData & { initialStatus: string })[] = [
+type ContractListItem = ContractData & { initialStatus: string; signingUrl?: string };
+
+const DEMO_CONTRACTS: ContractListItem[] = [
   {
     id: "contract-001",
     title: "Website Redesign SOW -- Acme Corp",
@@ -46,6 +49,34 @@ const DEMO_CONTRACTS: (ContractData & { initialStatus: string })[] = [
 ];
 
 export default function ContractsPage() {
+  const [contracts, setContracts] = useState<ContractListItem[]>(DEMO_CONTRACTS);
+
+  const handleContractSent = (contract: {
+    id: string;
+    title: string;
+    clientName: string;
+    clientEmail: string;
+    signingUrl: string;
+    status: string;
+  }) => {
+    setContracts((prev) => {
+      const withoutCurrent = prev.filter((item) => item.id !== contract.id);
+      return [
+        {
+          id: contract.id,
+          title: contract.title,
+          clientName: contract.clientName,
+          clientEmail: contract.clientEmail,
+          userId: "user_demo_001",
+          pdfBase64: "",
+          initialStatus: contract.status,
+          signingUrl: contract.signingUrl,
+        },
+        ...withoutCurrent,
+      ];
+    });
+  };
+
   return (
     <WorkspaceShell
       eyebrow="Contracts"
@@ -57,7 +88,7 @@ export default function ContractsPage() {
         description="Fill in what you know. Our engine will suggest the best structure and include necessary protection clauses automatically."
       >
         <div className="mt-8 bg-white/50 backdrop-blur-sm rounded-[2rem] border border-slate-200/60 p-8 shadow-xl shadow-slate-200/20">
-          <ContractWizard />
+          <ContractWizard onContractSent={handleContractSent} />
         </div>
       </PageSection>
 
@@ -66,8 +97,13 @@ export default function ContractsPage() {
         description="Click 'Send to Client' to create a Documenso signing envelope."
       >
         <div className="grid gap-4 md:grid-cols-2">
-          {DEMO_CONTRACTS.map((c) => (
-            <ContractCard key={c.id} contract={c} initialStatus={c.initialStatus} />
+          {contracts.map((c) => (
+            <ContractCard
+              key={c.id}
+              contract={c}
+              initialStatus={c.initialStatus}
+              initialSigningUrl={c.signingUrl}
+            />
           ))}
         </div>
       </PageSection>

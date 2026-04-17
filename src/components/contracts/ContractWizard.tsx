@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ContractInput, generateContract, ContractResult, FreelancerType } from "@/lib/contract-engine";
 import { ContractPreview } from "./ContractPreview";
+import { SendSignatureModal } from "./SendSignatureModal";
 
-type Step = "input" | "template" | "generating" | "preview" | "signed";
+type Step = "input" | "template" | "generating" | "preview";
+
+type SentData = { signingUrl: string; contractId: string | null; clientName: string; documentName: string };
 
 const freelancerTypes: { id: FreelancerType; label: string; icon: string; example: string }[] = [
   { id: "Software Development", label: "Web/App Developer", icon: "💻", example: "Next.js Mobile App" },
@@ -15,7 +18,19 @@ const freelancerTypes: { id: FreelancerType; label: string; icon: string; exampl
   { id: "Consulting", label: "Consultant", icon: "🤝", example: "Business Strategy" },
 ];
 
-export function ContractWizard() {
+type ContractWizardProps = {
+  /** Called after a contract is successfully sent so the parent can add it to the list */
+  onContractSent?: (contract: {
+    id: string;
+    title: string;
+    clientName: string;
+    clientEmail: string;
+    signingUrl: string;
+    status: string;
+  }) => void;
+};
+
+export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
   const [step, setStep] = useState<Step>("input");
   const [formData, setFormData] = useState<ContractInput>({
     payment_model: "Fixed",
@@ -24,7 +39,8 @@ export function ContractWizard() {
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [selectedTemplate, setSelectedTemplate] = useState<"Free" | "Premium" | "Modern Corporate">("Free");
   const [result, setResult] = useState<ContractResult | null>(null);
-  const [signatureStatus, setSignatureStatus] = useState<"none" | "pending" | "signed">("none");
+  const [showModal, setShowModal] = useState(false);
+  const [sentData, setSentData] = useState<SentData | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -82,11 +98,37 @@ export function ContractWizard() {
     }, 2000); // Simulate AI crafting
   };
 
+  // Opens the modal — the modal handles the API call
   const handleSendForSignature = () => {
-    setSignatureStatus("pending");
-    setTimeout(() => {
-      setStep("signed");
-    }, 800);
+    setShowModal(true);
+  };
+
+  // Called by SendSignatureModal on a successful API response
+  const handleModalSuccess = (data: {
+    signingUrl: string;
+    documentId: string;
+    contractId: string | null;
+    clientName: string;
+    clientEmail: string;
+  }) => {
+    const documentName = result ? `${formData.freelancer_type ?? "Freelance"} Agreement — ${formData.client_name ?? "Client"}` : "Contract";
+    setSentData({
+      signingUrl: data.signingUrl,
+      contractId: data.contractId,
+      clientName: data.clientName,
+      documentName,
+    });
+    setShowModal(false);
+
+    // Notify parent so it can prepend this contract to the 'Your contracts' list
+    onContractSent?.({
+      id: data.contractId ?? data.documentId,
+      title: documentName,
+      clientName: data.clientName,
+      clientEmail: data.clientEmail,
+      signingUrl: data.signingUrl,
+      status: "Sent",
+    });
   };
 
   if (step === "generating") {
@@ -102,69 +144,55 @@ export function ContractWizard() {
   }
 
   if (step === "preview" && result) {
+    const documentName = `${formData.freelancer_type ?? "Freelance"} Agreement — ${formData.client_name ?? "Client"}`;
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between gap-4 py-2 border-b border-slate-100 mb-6 print:hidden">
-          <button
-            onClick={() => setStep("template")}
-            className="text-sm font-medium text-slate-500 hover:text-slate-800 flex items-center gap-2"
-          >
-            ← Back to Templates
-          </button>
-          <div className="flex gap-3">
-            <button 
-              onClick={() => setStep("input")}
-              className="text-xs font-semibold px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50"
+      <>
+        <div className="space-y-6">
+          <div className="flex items-center justify-between gap-4 py-2 border-b border-slate-100 mb-6 print:hidden">
+            <button
+              onClick={() => setStep("template")}
+              className="text-sm font-medium text-slate-500 hover:text-slate-800 flex items-center gap-2"
             >
-              Edit Fields
+              ← Back to Templates
             </button>
-            <button 
-              onClick={startGeneration}
-              className="text-xs font-semibold px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50"
-            >
-              Regenerate
-            </button>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setStep("input")}
+                className="text-xs font-semibold px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50"
+              >
+                Edit Fields
+              </button>
+              <button 
+                onClick={startGeneration}
+                className="text-xs font-semibold px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50"
+              >
+                Regenerate
+              </button>
+            </div>
           </div>
-        </div>
-        <ContractPreview 
-          result={result} 
-          templateType={selectedTemplate}
-          onSend={handleSendForSignature}
-        />
-      </div>
-    );
-  }
-
-  if (step === "signed") {
-    return (
-      <div className="py-16 text-center space-y-8 animate-in zoom-in-95 duration-500">
-        <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-3xl mx-auto shadow-inner">
-          ✓
-        </div>
-        <div className="space-y-3">
-          <h2 className="text-3xl font-bold text-slate-950">Contract Sent Successfully</h2>
-          <p className="text-slate-500 max-w-md mx-auto">
-            The agreement has been sent for digital signature. Status updated to <span className="font-semibold text-slate-900 uppercase tracking-wider text-xs bg-slate-100 px-2 py-1 rounded">Pending Signature</span>.
-          </p>
-        </div>
-        <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl max-w-sm mx-auto flex items-center gap-3">
-          <input 
-            readOnly 
-            value={`https://f-os.app/sign/${Math.random().toString(36).substr(2, 6)}`} 
-            className="bg-transparent text-xs text-slate-500 flex-1 outline-none"
+          <ContractPreview 
+            result={result} 
+            templateType={selectedTemplate}
+            onSend={handleSendForSignature}
           />
-          <button className="text-xs font-bold text-indigo-600">Copy Link</button>
+
+          {sentData && (
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+              Sent <span className="font-semibold">{sentData.documentName}</span> to <span className="font-semibold">{sentData.clientName}</span>. Status is now <span className="font-semibold">Sent</span> in Your contracts.
+            </div>
+          )}
         </div>
-        <button 
-          onClick={() => {
-            setStep("input");
-            setSignatureStatus("none");
-          }}
-          className="text-sm font-medium text-slate-500 underline underline-offset-4"
-        >
-          Create another contract
-        </button>
-      </div>
+
+        {/* Send Signature Modal */}
+        {showModal && (
+          <SendSignatureModal
+            documentName={documentName}
+            contractId=""
+            onClose={() => setShowModal(false)}
+            onSendSuccess={handleModalSuccess}
+          />
+        )}
+      </>
     );
   }
 

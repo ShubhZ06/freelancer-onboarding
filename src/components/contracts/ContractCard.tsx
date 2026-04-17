@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { SendContractModal, type ContractData } from "./SendContractModal";
+import type { ContractData } from "./SendContractModal";
+import { SendSignatureModal } from "./SendSignatureModal";
 
 // ---------------------------------------------------------------------------
 // Status badge
@@ -53,12 +54,17 @@ type Props = {
   contract: ContractData;
   /** Current status label — will be managed by the parent or lifted to context */
   initialStatus?: string;
+  initialSigningUrl?: string;
 };
 
-export function ContractCard({ contract, initialStatus = "Ready to Send" }: Props) {
+export function ContractCard({
+  contract,
+  initialStatus = "Ready to Send",
+  initialSigningUrl,
+}: Props) {
   const [status, setStatus] = useState(initialStatus);
   const [showModal, setShowModal] = useState(false);
-  const [signingUrl, setSigningUrl] = useState<string | null>(null);
+  const [signingUrl, setSigningUrl] = useState<string | null>(initialSigningUrl ?? null);
 
   const handleSent = (result: { signingUrl: string; documentId: string }) => {
     setStatus("Sent");
@@ -153,10 +159,14 @@ export function ContractCard({ contract, initialStatus = "Ready to Send" }: Prop
 
       {/* Modal */}
       {showModal && (
-        <SendContractModal
-          contract={contract}
+        <SendSignatureModal
+          documentName={contract.title}
+          contractId={contract.id}
+          pdfBase64={contract.pdfBase64}
+          initialClientName={contract.clientName}
+          initialClientEmail={contract.clientEmail}
           onClose={() => setShowModal(false)}
-          onSent={handleSent}
+          onSendSuccess={handleSent}
         />
       )}
     </>

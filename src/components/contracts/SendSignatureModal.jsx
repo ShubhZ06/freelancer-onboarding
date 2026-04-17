@@ -2,6 +2,57 @@
 
 import { useEffect, useRef, useState } from "react";
 
+function escapePdfText(value) {
+  const latinSafe = value.normalize("NFKD").replace(/[^\x00-\xFF]/g, "-");
+  return latinSafe.replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
+}
+
+function buildFallbackPdfBase64(documentName, recipientName) {
+  const lineA = escapePdfText(`Contract: ${documentName || "Freelance Agreement"}`);
+  const lineB = escapePdfText(`Recipient: ${recipientName || "Client"}`);
+  const lineC = escapePdfText(`Generated: ${new Date().toISOString()}`);
+
+  const contentStream = [
+    "BT",
+    "/F1 14 Tf",
+    "72 740 Td",
+    `(${lineA}) Tj`,
+    "0 -24 Td",
+    `(${lineB}) Tj`,
+    "0 -24 Td",
+    `(${lineC}) Tj`,
+    "ET",
+  ].join("\n");
+
+  const objects = [
+    "1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n",
+    "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n",
+    "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>\nendobj\n",
+    `4 0 obj\n<< /Length ${contentStream.length} >>\nstream\n${contentStream}\nendstream\nendobj\n`,
+    "5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n",
+  ];
+
+  let pdf = "%PDF-1.4\n";
+  const offsets = [0];
+
+  for (const obj of objects) {
+    offsets.push(pdf.length);
+    pdf += obj;
+  }
+
+  const xrefStart = pdf.length;
+  pdf += `xref\n0 ${objects.length + 1}\n`;
+  pdf += "0000000000 65535 f \n";
+
+  for (let i = 1; i < offsets.length; i += 1) {
+    pdf += `${String(offsets[i]).padStart(10, "0")} 00000 n \n`;
+  }
+
+  pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefStart}\n%%EOF`;
+
+  return btoa(pdf);
+}
+
 // ---------------------------------------------------------------------------
 // SendSignatureModal
 // ---------------------------------------------------------------------------
@@ -16,18 +67,30 @@ import { useEffect, useRef, useState } from "react";
  * @param {{
  *   documentName: string;
  *   contractId: string;
+ *   pdfBase64?: string;
+ *   initialClientName?: string;
+ *   initialClientEmail?: string;
  *   onClose: () => void;
- *   onSendSuccess?: () => void;
+ *   onSendSuccess?: (result: {
+ *     signingUrl: string;
+ *     documentId: string;
+ *     contractId: string | null;
+ *     clientName: string;
+ *     clientEmail: string;
+ *   }) => void;
  * }} props
  */
 export function SendSignatureModal({
   documentName,
   contractId,
+  pdfBase64 = "",
+  initialClientName = "",
+  initialClientEmail = "",
   onClose,
   onSendSuccess,
 }) {
-  const [clientName, setClientName] = useState("");
-  const [clientEmail, setClientEmail] = useState("");
+  const [clientName, setClientName] = useState(initialClientName);
+  const [clientEmail, setClientEmail] = useState(initialClientEmail);
   const [isSending, setIsSending] = useState(false);
 
   const backdropRef = useRef(null);
@@ -56,21 +119,34 @@ export function SendSignatureModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contractId,
+          // contractId is forwarded when available (e.g. from ContractCard flow)
+          ...(contractId ? { contractId } : {}),
           clientName: clientName.trim(),
           clientEmail: clientEmail.trim(),
+          userId: "user_demo_001",
+          pdfBase64:
+            typeof pdfBase64 === "string" && pdfBase64.trim().length > 0
+              ? pdfBase64
+              : `data:application/pdf;base64,${buildFallbackPdfBase64(documentName, clientName.trim())}`,
         }),
       });
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         const detail =
-          body?.error || body?.details || `Server responded with ${res.status}`;
+          body?.details || body?.error || `Server responded with ${res.status}`;
         throw new Error(detail);
       }
 
-      alert(`✅ Envelope created! The signing link has been generated for ${clientName}.`);
-      onSendSuccess?.();
+      const data = await res.json();
+
+      onSendSuccess?.({
+        signingUrl: data.signingUrl ?? "",
+        documentId: String(data.documentId ?? ""),
+        contractId: data.contractId ?? null,
+        clientName: clientName.trim(),
+        clientEmail: clientEmail.trim(),
+      });
       onClose();
     } catch (err) {
       const msg = err instanceof Error ? err.message : "An unknown error occurred.";
