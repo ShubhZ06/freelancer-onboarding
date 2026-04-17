@@ -16,6 +16,7 @@
  */
 
 import crypto from "node:crypto";
+import { type NextRequest } from "next/server";
 import { getDb } from "@/lib/db/mongodb";
 
 // ---------------------------------------------------------------------------
@@ -32,7 +33,7 @@ const WEBHOOK_SECRET = process.env.DOCUMENSO_WEBHOOK_SECRET;
  * Constant-time comparison to prevent timing attacks.
  * Returns `true` if both strings are non-empty and equal.
  */
-function timingSafeEqual(a, b) {
+function timingSafeEqual(a: string | null, b: string | null): boolean {
   if (!a || !b) return false;
 
   try {
@@ -52,7 +53,7 @@ function timingSafeEqual(a, b) {
 // Route handler
 // ---------------------------------------------------------------------------
 
-export async function POST(request) {
+export async function POST(request: NextRequest) {
   // ── 1. Verify webhook secret ────────────────────────────────────────────
   // If DOCUMENSO_WEBHOOK_SECRET is set we enforce it; if it is intentionally
   // left blank (e.g. during local development) we skip the check with a warning.
@@ -143,13 +144,13 @@ export async function POST(request) {
       : now;
 
     // Extract signer details from the payload for denormalization
-    const signers = (payload.recipients || [])
-      .filter((r) => r.role === "SIGNER")
-      .map((r) => ({
+    const signers = (payload.recipients || [] as Array<Record<string, unknown>>)
+      .filter((r: Record<string, unknown>) => r.role === "SIGNER")
+      .map((r: Record<string, unknown>) => ({
         recipientId: r.id,
         email: r.email,
         name: r.name,
-        signedAt: r.signedAt ? new Date(r.signedAt) : null,
+        signedAt: r.signedAt ? new Date(r.signedAt as string) : null,
         signingStatus: r.signingStatus,
       }));
 
@@ -188,7 +189,8 @@ export async function POST(request) {
           { documentId: documentId },
         ],
       },
-      updateDoc
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      updateDoc as any
     );
 
     if (result.matchedCount === 0) {

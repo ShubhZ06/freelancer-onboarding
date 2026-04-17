@@ -65,7 +65,7 @@ export async function GET() {
       .toArray();
 
     // Serialise MongoDB ObjectId and Date objects so they JSON-encode cleanly.
-    const serialised = docs.map((doc) => ({
+    const serialised = docs.map((doc: Record<string, unknown>) => ({
       ...doc,
       _id: doc._id?.toString?.() ?? null,
       completedAt: doc.completedAt instanceof Date

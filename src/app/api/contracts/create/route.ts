@@ -25,6 +25,8 @@
 
 import { getDb } from "@/lib/db/mongodb";
 
+import { type NextRequest } from "next/server";
+
 const DOCUMENSO_API_KEY = process.env.DOCUMENSO_API_KEY;
 const DOCUMENSO_BASE_URL = (process.env.DOCUMENSO_BASE_URL || "https://app.documenso.com").replace(/\/+$/, "");
 
@@ -32,7 +34,7 @@ const DOCUMENSO_BASE_URL = (process.env.DOCUMENSO_BASE_URL || "https://app.docum
  * Small helper that calls a Documenso v2 endpoint and returns the parsed JSON.
  * Throws a descriptive error on non-2xx responses.
  */
-async function documensoFetch(path, options = {}) {
+async function documensoFetch(path: string, options: RequestInit = {}): Promise<Record<string, unknown>> {
   const url = `${DOCUMENSO_BASE_URL}/api/v2${path}`;
 
   const res = await fetch(url, {
@@ -78,7 +80,7 @@ async function documensoFetch(path, options = {}) {
 // Route handler
 // ---------------------------------------------------------------------------
 
-export async function POST(request) {
+export async function POST(request: NextRequest) {
   // 1. Validate environment --------------------------------------------------
   if (!DOCUMENSO_API_KEY) {
     return Response.json(
@@ -197,16 +199,17 @@ export async function POST(request) {
       headers: { "Content-Type": "application/json" },
     });
 
-    const signer = envelope.recipients?.find(
+    const recipients = (envelope.recipients ?? []) as Array<Record<string, unknown>>;
+    const signer = recipients.find(
       (r) =>
         r.role === "SIGNER" &&
         String(r.email || "").toLowerCase() === clientEmail.toLowerCase()
     );
 
-    const signerToken = signer?.token || signer?.signingToken || null;
+    const signerToken = (signer?.token || signer?.signingToken || null) as string | null;
     const signingUrl =
-      signer?.signingUrl ||
-      signer?.url ||
+      (signer?.signingUrl as string) ||
+      (signer?.url as string) ||
       (signerToken ? `${DOCUMENSO_BASE_URL}/sign/${signerToken}` : null);
 
     if (!signingUrl) {
