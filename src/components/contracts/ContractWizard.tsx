@@ -9,9 +9,12 @@ import {
   generateContract,
 } from "@/lib/contract-engine";
 import { ContractCanvas } from "./ContractCanvas";
+import { SendSignatureModal } from "./SendSignatureModal";
 
-type Step = "input" | "template" | "generating" | "preview" | "signed";
+type Step = "input" | "template" | "generating" | "preview";
 type TemplateType = "Free" | "Premium" | "Modern Corporate";
+
+type SentData = { signingUrl: string; contractId: string | null; clientName: string; documentName: string };
 
 const freelancerTypes: Array<{ id: FreelancerType; label: string; example: string; tone: string }> = [
   { id: "Software Development", label: "Web/App Dev", example: "Next.js web app", tone: "bg-[#ff6b6b]" },
@@ -24,15 +27,24 @@ const freelancerTypes: Array<{ id: FreelancerType; label: string; example: strin
 
 const paymentModels: Array<ContractInput["payment_model"]> = ["Fixed", "Hourly"];
 
-function buildShortId() {
-  return Math.random().toString(36).slice(2, 8).toUpperCase();
-}
+type ContractWizardProps = {
+  /** Called after a contract is successfully sent so the parent can add it to the list */
+  onContractSent?: (contract: {
+    id: string;
+    title: string;
+    clientName: string;
+    clientEmail: string;
+    signingUrl: string;
+    status: string;
+  }) => void;
+};
 
-export function ContractWizard() {
+export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
   const [step, setStep] = useState<Step>("input");
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>("Free");
   const [result, setResult] = useState<ContractResult | null>(null);
-  const [signatureLink, setSignatureLink] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [sentData, setSentData] = useState<SentData | null>(null);
 
   const [formData, setFormData] = useState<ContractInput>({
     payment_model: "Fixed",
@@ -101,10 +113,38 @@ export function ContractWizard() {
     }, 1300);
   }
 
-  function sendForSignature() {
-    setSignatureLink(`https://f-os.app/sign/${buildShortId()}`);
-    setStep("signed");
-  }
+  // Opens the modal — the modal handles the API call
+  const handleSendForSignature = () => {
+    setShowModal(true);
+  };
+
+  // Called by SendSignatureModal on a successful API response
+  const handleModalSuccess = (data: {
+    signingUrl: string;
+    documentId: string;
+    contractId: string | null;
+    clientName: string;
+    clientEmail: string;
+  }) => {
+    const documentName = result ? `${formData.freelancer_type ?? "Freelance"} Agreement — ${formData.client_name ?? "Client"}` : "Contract";
+    setSentData({
+      signingUrl: data.signingUrl,
+      contractId: data.contractId,
+      clientName: data.clientName,
+      documentName,
+    });
+    setShowModal(false);
+
+    // Notify parent so it can prepend this contract to the 'Your contracts' list
+    onContractSent?.({
+      id: data.contractId ?? data.documentId,
+      title: documentName,
+      clientName: data.clientName,
+      clientEmail: data.clientEmail,
+      signingUrl: data.signingUrl,
+      status: "Sent",
+    });
+  };
 
   if (step === "generating") {
     return (
@@ -124,46 +164,40 @@ export function ContractWizard() {
   }
 
   if (step === "preview" && result) {
+    const documentName = `${formData.freelancer_type ?? "Freelance"} Agreement — ${formData.client_name ?? "Client"}`;
     return (
-      <ContractCanvas
-        result={result}
-        templateType={selectedTemplate}
-        onBack={() => setStep("template")}
-        onGenerateAnother={() => setStep("input")}
-        onSend={sendForSignature}
-      />
-    );
-  }
+      <>
+        <ContractCanvas
+          result={result}
+          templateType={selectedTemplate}
+          onBack={() => setStep("template")}
+          onGenerateAnother={() => setStep("input")}
+          onSend={handleSendForSignature}
+        />
 
-  if (step === "signed") {
-    return (
-      <div className="relative overflow-hidden border-4 border-black bg-[#fffdf5] p-10 text-center neo-shadow-lg sm:p-14">
-        <div aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 pattern-halftone opacity-30" />
-        <span className="neo-tag neo-tag-accent mx-auto animate-wiggle">Sent!</span>
-        <p className="font-heading mt-6 text-5xl font-black uppercase tracking-tighter text-black sm:text-6xl">
-          Contract Sent ✓
-        </p>
-        <p className="mx-auto mt-3 max-w-xl text-lg font-bold text-black">
-          Your document is prepped for digital signature and ready to share.
-        </p>
-        <div className="mx-auto mt-8 max-w-md border-4 border-black bg-[#ffd93d] p-5 text-left neo-shadow-sm">
-          <p className="font-heading text-xs font-black uppercase tracking-[0.25em] text-black">
-            Share link
-          </p>
-          <p className="mt-2 break-all text-sm font-bold text-black">{signatureLink}</p>
-        </div>
-        <button
-          type="button"
-          onClick={() => {
-            setStep("input");
-            setResult(null);
-            setSignatureLink("");
-          }}
-          className="neo-btn neo-btn-primary mt-8"
-        >
-          Create Another →
-        </button>
-      </div>
+        {sentData && (
+          <div className="mt-6 border-4 border-black bg-[#c4b5fd] px-5 py-4 neo-shadow-sm">
+            <p className="text-base font-bold text-black">
+              ✓ Sent <span className="font-heading font-black">{sentData.documentName}</span> to{" "}
+              <span className="font-heading font-black">{sentData.clientName}</span>. Status is now{" "}
+              <span className="inline-flex items-center border-[3px] border-black bg-black px-2 py-0.5 text-xs font-black uppercase tracking-widest text-[#ffd93d]">
+                Sent
+              </span>{" "}
+              in Your Contracts.
+            </p>
+          </div>
+        )}
+
+        {/* Send Signature Modal */}
+        {showModal && (
+          <SendSignatureModal
+            documentName={documentName}
+            contractId=""
+            onClose={() => setShowModal(false)}
+            onSendSuccess={handleModalSuccess}
+          />
+        )}
+      </>
     );
   }
 

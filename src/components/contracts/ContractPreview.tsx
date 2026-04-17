@@ -9,10 +9,18 @@ interface Props {
   onSend: () => void;
 }
 
+function buildStableDocumentId(seed: string) {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i += 1) {
+    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  }
+  return hash.toString(36).toUpperCase().padStart(9, "0").slice(-9);
+}
+
 export function ContractPreview({ result, templateType, onSend }: Props) {
   const isPremium = templateType === "Premium";
   const isCorporate = templateType === "Modern Corporate";
-  const [documentId] = useState(() => Math.random().toString(36).slice(2, 11).toUpperCase());
+  const stableDocumentId = buildStableDocumentId(result.contract || result.summary || "contract");
 
   return (
     <div className="space-y-8">
@@ -104,7 +112,7 @@ export function ContractPreview({ result, templateType, onSend }: Props) {
               </h2>
               <div className="flex flex-wrap gap-2">
                 <span className="neo-tag">Verified</span>
-                <span className="neo-tag neo-tag-yellow">ID: {documentId}</span>
+                <span className="neo-tag neo-tag-yellow">ID: {stableDocumentId}</span>
               </div>
             </div>
             <div className="text-right space-y-1">
