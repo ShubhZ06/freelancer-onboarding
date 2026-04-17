@@ -197,9 +197,9 @@ export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
   }
 
   return (
-    <div className="max-w-4xl mx-auto contract-workspace-container">
+    <div className="contract-workspace-container mx-auto max-w-4xl">
       {/* Progress Pills */}
-      <div className="flex gap-2 mb-10 overflow-x-auto pb-2 print:hidden">
+      <div className="mb-10 flex gap-2 overflow-x-auto pb-2 print:hidden">
         {["Intake Details", "Select Style", "Final Review"].map((t, i) => {
           const active = (step === "input" && i === 0) || (step === "template" && i === 1) || (step === "preview" && i === 2);
           const completed = (step === "template" && i === 0) || (step === "preview" && i <= 1);
@@ -311,57 +311,57 @@ export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
             </div>
           </section>
 
-          <button onClick={goToTemplateStep} className="w-full bg-slate-950 text-white p-5 rounded-2xl font-bold text-sm shadow-xl hover:shadow-2xl transition-all active:scale-[0.99] flex items-center justify-center gap-2">
+          <button onClick={goToTemplateStep} className="flex w-full items-center justify-center gap-2 border-4 border-black bg-black p-5 text-sm font-black uppercase tracking-[0.24em] text-white transition hover:bg-swiss-accent hover:text-black active:scale-[0.99]">
             Continue to Template Selection →
           </button>
         </div>
       ) : step === "template" ? (
         <div className="space-y-8 animate-in fade-in zoom-in-95 duration-300">
-          <div className="text-center space-y-2 px-4 shadow-sm pb-4">
-            <h2 className="text-2xl font-bold text-slate-950">Select Contract Interface</h2>
-            <p className="text-slate-500">How would you like the legal document to be formatted visually?</p>
+          <div className="space-y-2 px-4 pb-4 text-center">
+            <h2 className="text-2xl font-black uppercase tracking-tight text-black">Select Contract Interface</h2>
+            <p className="text-black/70">How would you like the legal document to be formatted visually?</p>
           </div>
           <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             <div 
               onClick={() => setSelectedTemplate("Free")}
-              className={`p-6 rounded-[2.5rem] border-2 transition-all cursor-pointer flex flex-col items-center text-center space-y-4 ${selectedTemplate === "Free" ? "border-indigo-600 bg-indigo-50/50 ring-1 ring-indigo-600" : "border-slate-200 hover:border-slate-300 bg-white"}`}
+              className={`flex cursor-pointer flex-col items-center space-y-4 border-4 p-6 text-center transition-all ${selectedTemplate === "Free" ? "border-black bg-swiss-muted" : "border-black bg-white hover:bg-swiss-muted"}`}
             >
-              <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400">📄</div>
+              <div className="flex h-12 w-12 items-center justify-center border-2 border-black bg-white text-black">1</div>
               <div>
-                <h4 className="font-bold text-slate-950 text-lg">Free Version</h4>
-                <p className="text-xs text-slate-500 mt-2 leading-relaxed">Simple monospace formatting. Standard legal layout.</p>
+                <h4 className="text-lg font-black uppercase tracking-tight text-black">Free Version</h4>
+                <p className="mt-2 text-xs leading-relaxed text-black/70">Simple monospace formatting. Standard legal layout.</p>
               </div>
             </div>
             
             <div 
               onClick={() => setSelectedTemplate("Premium")}
-              className={`p-6 rounded-[2.5rem] border-2 transition-all cursor-pointer flex flex-col items-center text-center space-y-4 relative overflow-hidden ${selectedTemplate === "Premium" ? "border-indigo-600 bg-indigo-50/50 ring-1 ring-indigo-600" : "border-slate-200 hover:border-slate-300 bg-white"}`}
+              className={`relative flex cursor-pointer flex-col items-center space-y-4 overflow-hidden border-4 p-6 text-center transition-all ${selectedTemplate === "Premium" ? "border-black bg-swiss-muted" : "border-black bg-white hover:bg-swiss-muted"}`}
             >
-              <div className="absolute top-4 right-4 bg-indigo-600 text-white font-bold text-[8px] px-2 py-0.5 rounded-full tracking-tighter">RECOMMENDED</div>
-              <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600">✨</div>
+              <div className="absolute right-4 top-4 border-2 border-black bg-swiss-accent px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.24em] text-black">Recommended</div>
+              <div className="flex h-12 w-12 items-center justify-center border-2 border-black bg-black text-white">2</div>
               <div>
-                <h4 className="font-bold text-slate-950 text-lg">Premium AI Style</h4>
-                <p className="text-xs text-slate-500 mt-2 leading-relaxed">High-fidelity typography, professional structure, and immutable ID.</p>
+                <h4 className="text-lg font-black uppercase tracking-tight text-black">Premium AI Style</h4>
+                <p className="mt-2 text-xs leading-relaxed text-black/70">High-fidelity typography, professional structure, and immutable ID.</p>
               </div>
             </div>
 
             <div 
               onClick={() => setSelectedTemplate("Modern Corporate")}
-              className={`p-6 rounded-[2.5rem] border-2 transition-all cursor-pointer flex flex-col items-center text-center space-y-4 ${selectedTemplate === "Modern Corporate" ? "border-indigo-600 bg-indigo-50/50 ring-1 ring-indigo-600" : "border-slate-200 hover:border-slate-300 bg-white"}`}
+              className={`flex cursor-pointer flex-col items-center space-y-4 border-4 p-6 text-center transition-all ${selectedTemplate === "Modern Corporate" ? "border-black bg-swiss-muted" : "border-black bg-white hover:bg-swiss-muted"}`}
             >
-              <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center text-white">🏛️</div>
+              <div className="flex h-12 w-12 items-center justify-center border-2 border-black bg-white text-black">3</div>
               <div>
-                <h4 className="font-bold text-slate-950 text-lg">Modern Corporate</h4>
-                <p className="text-xs text-slate-500 mt-2 leading-relaxed">Executive sans-serif design. Strong headers and structured sections.</p>
+                <h4 className="text-lg font-black uppercase tracking-tight text-black">Modern Corporate</h4>
+                <p className="mt-2 text-xs leading-relaxed text-black/70">Executive sans-serif design. Strong headers and structured sections.</p>
               </div>
             </div>
           </div>
           
           <div className="flex flex-col items-center gap-4">
-            <button onClick={startGeneration} className="w-full max-w-sm bg-slate-950 text-white px-10 py-5 rounded-2xl font-bold text-sm shadow-indigo-200/50 shadow-lg hover:bg-slate-800 transition-all">
+            <button onClick={startGeneration} className="w-full max-w-sm border-4 border-black bg-black px-10 py-5 text-sm font-black uppercase tracking-[0.24em] text-white transition hover:bg-swiss-accent hover:text-black">
               Use Template
             </button>
-            <button onClick={() => setStep("input")} className="text-sm font-medium text-slate-500 hover:text-slate-800">
+            <button onClick={() => setStep("input")} className="text-sm font-black uppercase tracking-[0.24em] text-black/60 hover:text-black">
               ← Back to Details
             </button>
           </div>

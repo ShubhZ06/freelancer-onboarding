@@ -37,17 +37,17 @@ const pillars = [
 
 export function FeaturePillars() {
   return (
-    <section className="rounded-[1.75rem] border border-slate-200/80 bg-white/85 p-6 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
-      <div className="mb-5 flex items-end justify-between gap-4">
+    <section className="border-4 border-black bg-white p-6 swiss-dots">
+      <div className="mb-5 flex flex-col gap-3 border-b-2 border-black pb-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="text-sm uppercase tracking-[0.2em] text-slate-500">
-            Product pillars
+          <p className="text-xs font-black uppercase tracking-[0.3em] text-swiss-accent">
+            02. METHOD
           </p>
-          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+          <h2 className="mt-2 text-2xl font-black uppercase tracking-tighter text-black sm:text-3xl">
             Architecture-aligned feature cards
           </h2>
         </div>
-        <p className="max-w-sm text-sm leading-6 text-slate-600">
+        <p className="max-w-sm text-sm leading-6 text-black/70">
           Each feature can become its own module while the page stays composed
           from reusable dashboard components.
         </p>
@@ -58,23 +58,23 @@ export function FeaturePillars() {
           <Link
             key={pillar.id}
             href={pillar.href}
-            className={`group block transition-transform duration-300 hover:-translate-y-1`}
+            className="group block transition-transform duration-150 hover:-translate-y-1"
           >
             <article
-              className={`h-full rounded-[1.5rem] border border-slate-200/70 bg-gradient-to-br ${pillar.accent} p-5 shadow-sm transition-shadow duration-300 group-hover:shadow-md`}
+                className="flex h-full flex-col justify-between border-2 border-black bg-white p-5 transition-colors duration-150 group-hover:bg-black group-hover:text-white"
             >
               <div className="flex items-center justify-between gap-3">
-                <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-semibold tracking-[0.2em] text-white">
+                  <span className="border-2 border-black bg-swiss-muted px-3 py-1 text-xs font-black tracking-[0.24em] text-black group-hover:border-white group-hover:bg-transparent group-hover:text-white">
                   {pillar.id}
                 </span>
-                <span className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
-                  v1 foundation
+                  <span className="text-xs font-black uppercase tracking-[0.2em] text-black/50 group-hover:text-white/60">
+                    v1 foundation
                 </span>
               </div>
-              <h3 className="mt-4 text-xl font-semibold text-slate-950">
+                <h3 className="mt-4 text-xl font-black uppercase tracking-tight text-black group-hover:text-white">
                 {pillar.title}
               </h3>
-              <p className="mt-3 text-sm leading-6 text-slate-700">
+                <p className="mt-3 text-sm leading-6 text-black/70 group-hover:text-white/75">
                 {pillar.description}
               </p>
             </article>

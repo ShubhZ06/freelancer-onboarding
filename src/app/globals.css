@@ -1,13 +1,21 @@
 @import "tailwindcss";
 
 :root {
-  --background: #eef1f5;
-  --foreground: #142033;
+  --background: #ffffff;
+  --foreground: #000000;
+  --muted: #f2f2f2;
+  --accent: #ff3000;
+  --border: #000000;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-border: var(--border);
+  --color-swiss-accent: var(--accent);
+  --color-swiss-muted: var(--muted);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -22,15 +30,58 @@ html {
 
 body {
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.92), transparent 28%),
-    radial-gradient(circle at top right, rgba(194, 230, 255, 0.38), transparent 24%),
-    linear-gradient(180deg, #f7f1e7 0%, #eef1f5 45%, #e6edf4 100%);
+  background-color: var(--background);
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.025) 1px, transparent 1px),
+    radial-gradient(circle at top right, rgba(255, 48, 0, 0.06), transparent 24%),
+    radial-gradient(circle at bottom left, rgba(0, 0, 0, 0.03), transparent 18%);
+  background-size: 24px 24px, 24px 24px, 100% 100%, 100% 100%;
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-geist-sans), sans-serif;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+@layer base {
+  /* Keep anchors inheriting color/decoration from parents *unless* a Tailwind
+     utility (e.g. text-white, underline) is applied. Must live inside @layer
+     base — unlayered rules defeat utility layers in the cascade. */
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--foreground);
+}
+
+@layer utilities {
+  .swiss-grid-pattern {
+    background-image:
+      linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  .swiss-dots {
+    background-image: radial-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+    background-size: 16px 16px;
+  }
+
+  .swiss-diagonal {
+    background-image: repeating-linear-gradient(
+      135deg,
+      rgba(0, 0, 0, 0.04) 0,
+      rgba(0, 0, 0, 0.04) 1px,
+      transparent 1px,
+      transparent 10px
+    );
+  }
+
+  .swiss-noise {
+    background-image: radial-gradient(circle, rgba(0, 0, 0, 0.045) 0.7px, transparent 0.7px);
+    background-size: 7px 7px;
+  }
 }

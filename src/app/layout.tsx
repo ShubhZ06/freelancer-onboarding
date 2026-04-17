@@ -1,20 +1,20 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Inter_Tight } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
+const interSans = Inter({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
+const interMono = Inter_Tight({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "Freelancer Operating System",
-  description: "A modular dashboard starter for the Freelancer Operating System.",
+  title: "Freelancer Operating System | Swiss Interface",
+  description: "A modular freelancer workspace with a Swiss typographic system and clearer operational UX.",
 };
 
 export default function RootLayout({
@@ -29,6 +29,9 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body suppressHydrationWarning className="min-h-full flex flex-col">{children}</body>
+      className={`${interSans.variable} ${interMono.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col bg-background text-foreground">{children}</body>
     </html>
   );
 }

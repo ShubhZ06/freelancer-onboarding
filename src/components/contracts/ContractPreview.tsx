@@ -86,14 +86,16 @@ export function ContractPreview({ result, templateType, onSend }: Props) {
       {/* Summary Section - Hidden in Print */}
       <div className="bg-[#fcf9f1] border border-[#e8dfc4] p-8 rounded-4xl shadow-sm relative overflow-hidden no-print">
         <div className="absolute top-0 right-0 w-32 h-32 bg-amber-200/10 rounded-full -mr-16 -mt-16 blur-3xl" />
+      <div className="relative overflow-hidden border-4 border-black bg-white p-8 no-print">
+        <div className="absolute inset-0 swiss-dots opacity-30" />
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-8 h-8 rounded-full bg-amber-200 flex items-center justify-center text-amber-700 text-xs font-bold">
+          <div className="flex h-8 w-8 items-center justify-center border-2 border-black bg-swiss-accent text-xs font-black text-black">
             i
           </div>
-          <h4 className="font-bold text-slate-900 tracking-tight text-lg">Plain English Summary</h4>
+          <h4 className="text-lg font-black uppercase tracking-tight text-black">Plain English Summary</h4>
         </div>
         <div className="relative z-10">
-          <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-slate-700 font-medium">
+          <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-black font-medium">
             {result.summary}
           </pre>
         </div>
@@ -103,16 +105,16 @@ export function ContractPreview({ result, templateType, onSend }: Props) {
       <div
         className={`contract-document-wrapper transition-all duration-700 rounded-[2.5rem] border relative ${
           isPremium
-            ? "bg-white p-16 shadow-[0_40px_80px_rgba(0,0,0,0.06)] border-slate-100 ring-1 ring-slate-950/5"
+            ? "bg-white p-10 sm:p-16 border-4 border-black"
             : isCorporate
-            ? "bg-white p-16 shadow-[0_40px_80px_rgba(0,0,0,0.06)] border-slate-900 ring-2 ring-slate-950"
-            : "bg-white p-10 shadow-sm border-slate-200"
+            ? "bg-white p-10 sm:p-16 border-4 border-black"
+            : "bg-white p-10 border-4 border-black"
         }`}
       >
         {(isPremium || isCorporate) && (
-          <div className={`mb-16 border-b pb-10 flex justify-between items-end ${isCorporate ? "border-slate-900" : "border-slate-100"}`}>
+          <div className="mb-10 flex items-end justify-between border-b-2 border-black pb-8">
             <div className="space-y-2">
-              <h2 className={`text-3xl tracking-tight ${isPremium ? "font-serif italic text-slate-950" : "font-sans font-black uppercase text-slate-900 tracking-tighter"}`}>
+              <h2 className="text-3xl font-black uppercase tracking-tighter text-black">
                 {isCorporate ? "Professional Services Agreement" : "Freelance Services Agreement"}
               </h2>
               <div className="flex gap-4">
@@ -121,8 +123,8 @@ export function ContractPreview({ result, templateType, onSend }: Props) {
               </div>
             </div>
             <div className="text-right">
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-loose">Status: FINAL</p>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-loose">Code: 202-A</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.24em] leading-loose text-black/50">Status: FINAL</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.24em] leading-loose text-black/50">Code: 202-A</p>
             </div>
           </div>
         )}
@@ -131,10 +133,10 @@ export function ContractPreview({ result, templateType, onSend }: Props) {
           <pre
             className={`whitespace-pre-wrap transition-all duration-500 relative z-10 ${
               isPremium
-                ? "font-serif text-[1.1rem] leading-[1.85] text-slate-800"
+                ? "font-sans text-[1.02rem] leading-[1.85] text-black"
                 : isCorporate
-                ? "font-sans text-[1rem] leading-[1.8] text-slate-900 font-medium"
-                : "font-mono text-xs leading-[1.7] text-slate-600"
+                ? "font-sans text-[1rem] leading-[1.8] text-black font-medium"
+                : "font-mono text-xs leading-[1.7] text-black/75"
             }`}
           >
             {result.contract}
@@ -142,7 +144,7 @@ export function ContractPreview({ result, templateType, onSend }: Props) {
         </div>
 
         {(isPremium || isCorporate) && (
-          <div className={`mt-16 pt-10 border-t flex justify-between text-[10px] tracking-[0.3em] font-black ${isCorporate ? "border-slate-900 text-slate-900" : "border-slate-100 text-slate-300 uppercase"}`}>
+          <div className="mt-10 flex justify-between border-t-2 border-black pt-8 text-[10px] font-black uppercase tracking-[0.3em] text-black/50">
             <span>© 2026 {isCorporate ? "Corporate Legal Entity" : "FreelancerOS Legal Engine"}</span>
             <span>Document Protected</span>
           </div>
@@ -153,17 +155,16 @@ export function ContractPreview({ result, templateType, onSend }: Props) {
       <div className="flex flex-col sm:flex-row gap-4 pt-4 no-print">
         <button 
           onClick={() => window.print()}
-          className="flex-1 border-2 border-slate-200 text-slate-700 rounded-2xl py-4 px-6 font-bold text-sm hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
+          className="flex-1 border-2 border-black bg-white px-6 py-4 text-sm font-black uppercase tracking-[0.22em] text-black transition hover:bg-swiss-muted flex items-center justify-center gap-2"
         >
-          <span>📥</span> Print / Save PDF
+          Print / Save PDF
         </button>
         <button 
           onClick={onSend}
           className="flex-2 bg-indigo-600 text-white rounded-2xl py-4 px-6 font-bold text-sm shadow-xl shadow-indigo-200 hover:bg-indigo-700 hover:shadow-2xl transition-all flex items-center justify-center gap-2 group"
         >
-          <span>✍️</span> 
-          <span>Send for Digital Signature</span>
-          <span className="ml-1 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all">→</span>
+          Send for Digital Signature
+          <span className="ml-1 opacity-0 transition-all group-hover:opacity-100 group-hover:translate-x-1">→</span>
         </button>
       </div>
     </div>

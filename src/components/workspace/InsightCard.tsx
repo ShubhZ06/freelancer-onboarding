@@ -8,12 +8,12 @@ export function InsightCard({
   detail: string;
 }) {
   return (
-    <article className="rounded-[1.5rem] border border-slate-200/70 bg-slate-50 p-5">
-      <p className="text-sm text-slate-500">{label}</p>
-      <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+    <article className="group border-2 border-black bg-swiss-muted p-5 transition-colors duration-150 hover:bg-black hover:text-white">
+      <p className="text-xs font-black uppercase tracking-[0.24em] text-black/60 group-hover:text-white">{label}</p>
+      <p className="mt-3 text-4xl font-black tracking-tighter text-black transition-colors duration-150 group-hover:text-white">
         {value}
       </p>
-      <p className="mt-2 text-sm leading-6 text-slate-600">{detail}</p>
+      <p className="mt-2 text-sm leading-6 text-black/70 transition-colors duration-150 group-hover:text-white/80">{detail}</p>
     </article>
   );
 }

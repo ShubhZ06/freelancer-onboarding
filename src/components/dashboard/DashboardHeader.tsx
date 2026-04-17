@@ -6,18 +6,18 @@ const highlights = [
 
 export function DashboardHeader() {
   return (
-    <section className="overflow-hidden rounded-[2rem] border border-white/60 bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.95),_rgba(248,244,236,0.92)_40%,_rgba(234,239,244,0.9)_100%)] p-6 shadow-[0_24px_80px_rgba(26,32,44,0.08)] sm:p-8">
-      <div className="grid gap-8 lg:grid-cols-[1.35fr_0.95fr]">
-        <div className="space-y-5">
-          <span className="inline-flex w-fit items-center rounded-full border border-slate-300/70 bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.28em] text-slate-600">
-            Freelancer Operating System
+    <section className="overflow-hidden border-4 border-black bg-white p-5 sm:p-6 lg:p-8 swiss-grid-pattern">
+      <div className="grid gap-8 lg:grid-cols-[1.25fr_0.95fr] lg:items-end">
+        <div className="space-y-6">
+          <span className="inline-flex w-fit items-center border-2 border-black bg-swiss-accent px-3 py-1 text-xs font-black uppercase tracking-[0.32em] text-black">
+            01. SYSTEM
           </span>
           <div className="space-y-3">
-            <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+            <h1 className="max-w-4xl text-3xl font-black uppercase tracking-tighter text-black sm:text-4xl lg:text-5xl lg:leading-tight">
               Run acquisition, contracts, signing, and AI overhead from one
               clean operating dashboard.
             </h1>
-            <p className="max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+            <p className="max-w-2xl text-sm leading-7 text-black/70 sm:text-base">
               This starter dashboard follows the project architecture: a
               component-first Next.js interface that can grow feature by feature
               without crowding the main page file.
@@ -27,7 +27,7 @@ export function DashboardHeader() {
             {highlights.map((item) => (
               <span
                 key={item}
-                className="rounded-full bg-slate-950 px-4 py-2 text-sm font-medium text-white"
+                className="border-2 border-black bg-black px-4 py-2 text-xs font-black uppercase tracking-[0.24em] text-white"
               >
                 {item}
               </span>
@@ -35,12 +35,12 @@ export function DashboardHeader() {
           </div>
         </div>
 
-        <div className="grid gap-4 rounded-[1.75rem] border border-slate-200/80 bg-slate-950 p-5 text-slate-50 shadow-inner">
+        <div className="grid gap-4 border-4 border-black bg-black p-5 text-white">
           <div>
-            <p className="text-sm uppercase tracking-[0.2em] text-slate-300">
+            <p className="text-xs uppercase tracking-[0.3em] text-white/60">
               Today&apos;s view
             </p>
-            <h2 className="mt-2 text-2xl font-semibold">
+            <h2 className="mt-3 text-2xl font-black uppercase tracking-tight">
               Signed-revenue pipeline
             </h2>
           </div>
@@ -65,10 +65,10 @@ function StatCard({
   detail: string;
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/6 p-4">
-      <p className="text-sm text-slate-300">{label}</p>
-      <p className="mt-2 text-3xl font-semibold text-white">{value}</p>
-      <p className="mt-1 text-sm text-emerald-300">{detail}</p>
+    <div className="border-2 border-white bg-black p-4">
+      <p className="text-xs font-black uppercase tracking-[0.24em] text-white/60">{label}</p>
+      <p className="mt-2 text-3xl font-black tracking-tighter text-white">{value}</p>
+      <p className="mt-1 text-sm text-white/70">{detail}</p>
     </div>
   );
 }

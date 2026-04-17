@@ -19,12 +19,12 @@ const actions = [
 
 export function QuickActions() {
   return (
-    <aside className="rounded-[1.75rem] border border-slate-200/80 bg-slate-950 p-6 text-slate-50 shadow-[0_16px_40px_rgba(15,23,42,0.12)]">
-      <p className="text-sm uppercase tracking-[0.2em] text-slate-300">
+    <aside className="border-4 border-black bg-black p-6 text-white">
+      <p className="text-xs font-black uppercase tracking-[0.3em] text-white/60">
         Action center
       </p>
-      <h2 className="mt-2 text-2xl font-semibold">Simple dashboard tasks</h2>
-      <p className="mt-2 text-sm leading-6 text-slate-300">
+      <h2 className="mt-2 text-2xl font-black uppercase tracking-tight">Simple dashboard tasks</h2>
+      <p className="mt-2 text-sm leading-6 text-white/70">
         Keep the first version light: this panel shows where interactive widgets
         can later plug in without changing the page composition.
       </p>
@@ -33,17 +33,17 @@ export function QuickActions() {
         {actions.map((action, index) => (
           <article
             key={action.title}
-            className="rounded-2xl border border-white/10 bg-white/6 p-4"
+            className="group border-2 border-white bg-black p-4 transition-colors duration-150 hover:bg-swiss-accent hover:text-black"
           >
             <div className="flex items-start gap-3">
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-sm font-semibold text-slate-950">
+              <span className="inline-flex h-10 w-10 items-center justify-center border-2 border-white bg-white text-sm font-black text-black">
                 0{index + 1}
               </span>
               <div>
-                <h3 className="text-base font-semibold text-white">
+                <h3 className="text-base font-black uppercase tracking-tight text-white group-hover:text-black">
                   {action.title}
                 </h3>
-                <p className="mt-1 text-sm text-slate-300">{action.note}</p>
+                <p className="mt-1 text-sm text-white/70 group-hover:text-black/70">{action.note}</p>
               </div>
             </div>
           </article>

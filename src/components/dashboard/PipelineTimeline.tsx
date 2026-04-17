@@ -23,17 +23,17 @@ const timeline = [
 
 export function PipelineTimeline() {
   return (
-    <section className="rounded-[1.75rem] border border-slate-200/80 bg-white/85 p-6 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+    <section className="border-4 border-black bg-white p-6 swiss-diagonal">
+      <div className="flex flex-col gap-3 border-b-2 border-black pb-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-sm uppercase tracking-[0.2em] text-slate-500">
-            Operating flow
+          <p className="text-xs font-black uppercase tracking-[0.3em] text-swiss-accent">
+            03. FLOW
           </p>
-          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+          <h2 className="mt-2 text-2xl font-black uppercase tracking-tighter text-black sm:text-3xl">
             From lead capture to signed delivery
           </h2>
         </div>
-        <p className="max-w-xl text-sm leading-6 text-slate-600">
+        <p className="max-w-xl text-sm leading-6 text-black/70">
           This timeline mirrors the architecture so each stage can later map to
           its own domain service, queue, and data model.
         </p>
@@ -43,15 +43,15 @@ export function PipelineTimeline() {
         {timeline.map((item, index) => (
           <article
             key={item.step}
-            className="rounded-[1.5rem] border border-slate-200/70 bg-slate-50 p-5"
+            className="border-2 border-black bg-white p-5"
           >
-            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+            <span className="text-xs font-black uppercase tracking-[0.24em] text-swiss-accent">
               Step 0{index + 1}
             </span>
-            <h3 className="mt-3 text-lg font-semibold text-slate-950">
+            <h3 className="mt-3 text-lg font-black uppercase tracking-tight text-black">
               {item.step}
             </h3>
-            <p className="mt-2 text-sm leading-6 text-slate-600">{item.detail}</p>
+            <p className="mt-2 text-sm leading-6 text-black/70">{item.detail}</p>
           </article>
         ))}
       </div>

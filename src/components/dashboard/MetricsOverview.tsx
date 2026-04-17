@@ -27,13 +27,13 @@ export function MetricsOverview() {
       {metrics.map((metric) => (
         <article
           key={metric.label}
-          className="rounded-[1.5rem] border border-slate-200/80 bg-white/85 p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] backdrop-blur"
+          className="border-4 border-black bg-white p-5 transition-colors duration-150 hover:bg-swiss-accent hover:text-black"
         >
-          <p className="text-sm text-slate-500">{metric.label}</p>
-          <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+          <p className="text-xs font-black uppercase tracking-[0.28em] text-black/60">{metric.label}</p>
+          <p className="mt-3 text-4xl font-black tracking-tighter text-black">
             {metric.value}
           </p>
-          <p className="mt-2 text-sm leading-6 text-slate-600">{metric.helper}</p>
+          <p className="mt-2 text-sm leading-6 text-black/70">{metric.helper}</p>
         </article>
       ))}
     </section>

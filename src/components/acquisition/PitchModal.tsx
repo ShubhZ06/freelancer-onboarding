@@ -80,23 +80,23 @@ export function PitchModal({ lead, onClose }: Props) {
     <div
       ref={backdropRef}
       onClick={handleBackdropClick}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
     >
-      <div className="relative flex w-full max-w-lg flex-col rounded-2xl bg-white shadow-2xl">
+      <div className="relative flex w-full max-w-lg flex-col border-4 border-black bg-white">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+        <div className="flex items-center justify-between border-b-2 border-black px-6 py-4">
           <div>
-            <p className="text-sm font-semibold text-slate-900">
+            <p className="text-xs font-black uppercase tracking-[0.24em] text-black">
               {step === "setup" ? "Set up your pitch profile" : "Send your pitch"}
             </p>
-            <p className="text-xs text-slate-500 mt-0.5 truncate max-w-xs">
+            <p className="mt-1 max-w-xs truncate text-xs text-black/60">
               {lead.title} · {lead.companyName}
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+            className="border-2 border-black p-1.5 text-black transition hover:bg-swiss-accent"
             aria-label="Close"
           >
             <svg
@@ -118,10 +118,10 @@ export function PitchModal({ lead, onClose }: Props) {
         {/* Step: Setup */}
         {step === "setup" && (
           <form onSubmit={handleSetupSubmit} className="flex flex-col gap-4 p-6">
-            <p className="text-sm text-slate-600">
+            <p className="text-sm leading-6 text-black/70">
               Enter your details once — they'll be saved locally and reused for every pitch.
             </p>
-            <label className="flex flex-col gap-1 text-xs font-medium text-slate-600">
+            <label className="flex flex-col gap-1 text-xs font-black uppercase tracking-[0.22em] text-black/70">
               Your name
               <input
                 required
@@ -130,10 +130,10 @@ export function PitchModal({ lead, onClose }: Props) {
                   setProfile((p) => ({ ...p, name: e.target.value }))
                 }
                 placeholder="Alex Smith"
-                className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none ring-indigo-400 focus:ring-2"
+                className="border-2 border-black bg-swiss-muted px-3 py-3 text-sm text-black outline-none focus:border-swiss-accent"
               />
             </label>
-            <label className="flex flex-col gap-1 text-xs font-medium text-slate-600">
+            <label className="flex flex-col gap-1 text-xs font-black uppercase tracking-[0.22em] text-black/70">
               Portfolio / website URL
               <input
                 required
@@ -143,24 +143,24 @@ export function PitchModal({ lead, onClose }: Props) {
                   setProfile((p) => ({ ...p, portfolioUrl: e.target.value }))
                 }
                 placeholder="https://yourname.com"
-                className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none ring-indigo-400 focus:ring-2"
+                className="border-2 border-black bg-swiss-muted px-3 py-3 text-sm text-black outline-none focus:border-swiss-accent"
               />
             </label>
-            <label className="flex flex-col gap-1 text-xs font-medium text-slate-600">
+            <label className="flex flex-col gap-1 text-xs font-black uppercase tracking-[0.22em] text-black/70">
               Your role / specialty{" "}
-              <span className="font-normal text-slate-400">(optional)</span>
+              <span className="font-normal text-black/40">(optional)</span>
               <input
                 value={profile.role ?? ""}
                 onChange={(e) =>
                   setProfile((p) => ({ ...p, role: e.target.value }))
                 }
                 placeholder="e.g. full-stack developer, brand designer…"
-                className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none ring-indigo-400 focus:ring-2"
+                className="border-2 border-black bg-swiss-muted px-3 py-3 text-sm text-black outline-none focus:border-swiss-accent"
               />
             </label>
             <button
               type="submit"
-              className="mt-2 rounded-xl bg-slate-900 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+              className="mt-2 border-2 border-black bg-black py-3 text-sm font-black uppercase tracking-[0.24em] text-white hover:bg-swiss-accent hover:text-black"
             >
               Continue
             </button>
@@ -170,18 +170,18 @@ export function PitchModal({ lead, onClose }: Props) {
         {/* Step: Pitch preview */}
         {step === "pitch" && pitch && (
           <div className="flex flex-col gap-4 p-6">
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <div className="border-2 border-black bg-swiss-muted p-4">
+              <p className="mb-1 text-xs font-black uppercase tracking-[0.24em] text-black/40">
                 Subject
               </p>
-              <p className="text-sm font-medium text-slate-800">{pitch.subject}</p>
+              <p className="text-sm font-medium text-black">{pitch.subject}</p>
             </div>
 
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <div className="border-2 border-black bg-swiss-muted p-4">
+              <p className="mb-2 text-xs font-black uppercase tracking-[0.24em] text-black/40">
                 Message
               </p>
-              <pre className="whitespace-pre-wrap text-sm leading-6 text-slate-800 font-sans">
+              <pre className="whitespace-pre-wrap text-sm leading-6 text-black font-sans">
                 {pitch.body}
               </pre>
             </div>
@@ -190,10 +190,10 @@ export function PitchModal({ lead, onClose }: Props) {
               <button
                 type="button"
                 onClick={() => void handleCopy()}
-                className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold shadow-sm transition-colors ${
+                className={`flex items-center gap-1.5 border-2 border-black px-4 py-2 text-sm font-black uppercase tracking-[0.22em] transition-colors ${
                   copied
-                    ? "bg-emerald-600 text-white"
-                    : "bg-slate-900 text-white hover:bg-slate-800"
+                    ? "bg-swiss-accent text-black"
+                    : "bg-black text-white hover:bg-swiss-accent hover:text-black"
                 }`}
               >
                 {copied ? (
@@ -216,7 +216,7 @@ export function PitchModal({ lead, onClose }: Props) {
               <button
                 type="button"
                 onClick={() => { window.location.href = pitch.mailtoHref; }}
-                className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50"
+                className="flex items-center gap-1.5 border-2 border-black bg-white px-4 py-2 text-sm font-black uppercase tracking-[0.22em] text-black hover:bg-swiss-muted"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -228,7 +228,7 @@ export function PitchModal({ lead, onClose }: Props) {
                 href={lead.url}
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50"
+                className="flex items-center gap-1.5 border-2 border-black bg-white px-4 py-2 text-sm font-black uppercase tracking-[0.22em] text-black hover:bg-swiss-muted"
               >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -240,7 +240,7 @@ export function PitchModal({ lead, onClose }: Props) {
             <button
               type="button"
               onClick={() => setStep("setup")}
-              className="self-start text-xs text-slate-400 hover:text-slate-600 underline"
+              className="self-start text-xs font-black uppercase tracking-[0.24em] text-black/50 underline decoration-2 underline-offset-4 hover:text-black"
             >
               Edit profile
             </button>

@@ -105,6 +105,8 @@ export default function ContractsPage() {
               initialSigningUrl={c.signingUrl}
             />
           ))}
+        <div className="mt-8 border-4 border-black bg-white p-6 sm:p-8">
+          <ContractWizard />
         </div>
       </PageSection>
 
@@ -114,18 +116,18 @@ export default function ContractsPage() {
           description="How we ensure legal clarity and freelancer protection."
         >
           <div className="space-y-4">
-            <div className="flex gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
-              <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-xs">01</div>
+            <div className="flex gap-4 border-2 border-black bg-swiss-muted p-4">
+              <div className="flex h-8 w-8 items-center justify-center border-2 border-black bg-white text-xs font-black text-black">01</div>
               <div>
-                <p className="font-medium text-slate-900">Plain Language First</p>
-                <p className="text-sm text-slate-500">Every contract is paired with a summary to reduce legal anxiety.</p>
+                <p className="font-black uppercase tracking-[0.2em] text-black">Plain Language First</p>
+                <p className="text-sm text-black/70">Every contract is paired with a summary to reduce legal anxiety.</p>
               </div>
             </div>
-            <div className="flex gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
-              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs">02</div>
+            <div className="flex gap-4 border-2 border-black bg-swiss-muted p-4">
+              <div className="flex h-8 w-8 items-center justify-center border-2 border-black bg-swiss-accent text-xs font-black text-black">02</div>
               <div>
-                <p className="font-medium text-slate-900">Response Guard</p>
-                <p className="text-sm text-slate-500">48-hour auto-approval clauses are injected into every agreement.</p>
+                <p className="font-black uppercase tracking-[0.2em] text-black">Response Guard</p>
+                <p className="text-sm text-black/70">48-hour auto-approval clauses are injected into every agreement.</p>
               </div>
             </div>
           </div>
@@ -135,8 +137,8 @@ export default function ContractsPage() {
           title="Draft Mode System"
           description="Don't let missing data stop your momentum."
         >
-          <div className="p-6 rounded-2xl bg-indigo-50/50 border border-indigo-100 border-dashed">
-            <p className="text-sm leading-relaxed text-slate-600 italic">
+          <div className="border-2 border-dashed border-black bg-white p-6">
+            <p className="text-sm leading-relaxed text-black/70 italic">
               "Missing fields are automatically replaced with 'To be confirmed'. Agreements become binding once final variables are settled in a follow-up version."
             </p>
           </div>
