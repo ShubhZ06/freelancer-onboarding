@@ -47,7 +47,7 @@ export default function ContractsPage() {
         >
           <div className="p-6 rounded-2xl bg-indigo-50/50 border border-indigo-100 border-dashed">
             <p className="text-sm leading-relaxed text-slate-600 italic">
-              "Missing fields are automatically replaced with 'To be confirmed'. Agreements become binding once final variables are settled in a follow-up version."
+              &quot;Missing fields are automatically replaced with &apos;To be confirmed&apos;. Agreements become binding once final variables are settled in a follow-up version.&quot;
             </p>
           </div>
         </PageSection>

@@ -29,7 +29,7 @@ export interface ContractResult {
   contract: string;
   isDraft: boolean;
   detectedType: FreelancerType;
-  selectedTemplate: "Free" | "Premium" | "Modern Corporate";
+  selectedTemplate?: "Basic" | "Influencer" | "Corporate" | "Professional" | "Legal";
 }
 
 const DEFAULT_VALUE = "To be confirmed";
@@ -143,6 +143,6 @@ export function generateContract(input: ContractInput): ContractResult {
     contract,
     isDraft,
     detectedType: type,
-    selectedTemplate: "Free",
+    selectedTemplate: "Basic",
   };
 }

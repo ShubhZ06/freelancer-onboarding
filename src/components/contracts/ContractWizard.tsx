@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ContractInput, generateContract, ContractResult, FreelancerType } from "@/lib/contract-engine";
 import { ContractPreview } from "./ContractPreview";
+import { TemplateType, TEMPLATE_INFO } from "./ContractTemplates";
 
 type Step = "input" | "template" | "generating" | "preview" | "signed";
 
@@ -22,9 +23,8 @@ export function ContractWizard() {
     effective_date: new Date().toISOString().split("T")[0],
   });
   const [errors, setErrors] = useState<Record<string, boolean>>({});
-  const [selectedTemplate, setSelectedTemplate] = useState<"Free" | "Premium" | "Modern Corporate">("Free");
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>("Basic");
   const [result, setResult] = useState<ContractResult | null>(null);
-  const [signatureStatus, setSignatureStatus] = useState<"none" | "pending" | "signed">("none");
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -76,14 +76,12 @@ export function ContractWizard() {
     setStep("generating");
     setTimeout(() => {
       const res = generateContract(formData);
-      // We manually override the template type in the result if needed or pass it to preview
-      setResult({ ...res, selectedTemplate }); 
+      setResult(res);
       setStep("preview");
-    }, 2000); // Simulate AI crafting
+    }, 2000);
   };
 
   const handleSendForSignature = () => {
-    setSignatureStatus("pending");
     setTimeout(() => {
       setStep("signed");
     }, 800);
@@ -128,7 +126,8 @@ export function ContractWizard() {
         </div>
         <ContractPreview 
           result={result} 
-          templateType={selectedTemplate}
+          formData={formData}
+          selectedTemplate={selectedTemplate}
           onSend={handleSendForSignature}
         />
       </div>
@@ -150,16 +149,13 @@ export function ContractWizard() {
         <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl max-w-sm mx-auto flex items-center gap-3">
           <input 
             readOnly 
-            value={`https://f-os.app/sign/${Math.random().toString(36).substr(2, 6)}`} 
+            value="https://f-os.app/sign/[SIGNING_LINK]" 
             className="bg-transparent text-xs text-slate-500 flex-1 outline-none"
           />
           <button className="text-xs font-bold text-indigo-600">Copy Link</button>
         </div>
         <button 
-          onClick={() => {
-            setStep("input");
-            setSignatureStatus("none");
-          }}
+          onClick={() => setStep("input")}
           className="text-sm font-medium text-slate-500 underline underline-offset-4"
         >
           Create another contract
@@ -256,7 +252,7 @@ export function ContractWizard() {
             <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6">
               <div className="flex gap-4 p-1 bg-slate-100 rounded-xl w-fit">
                 {["Fixed", "Hourly"].map(m => (
-                  <button key={m} onClick={() => setFormData(p => ({ ...p, payment_model: m as any }))} className={`px-6 py-2 rounded-lg text-xs font-bold transition-all ${formData.payment_model === m ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500"}`}>{m} Fee</button>
+                  <button key={m} onClick={() => setFormData(p => ({ ...p, payment_model: m as "Fixed" | "Hourly" }))} className={`px-6 py-2 rounded-lg text-xs font-bold transition-all ${formData.payment_model === m ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500"}`}>{m} Fee</button>
                 ))}
               </div>
               <div className="grid md:grid-cols-2 gap-6">
@@ -289,51 +285,41 @@ export function ContractWizard() {
         </div>
       ) : step === "template" ? (
         <div className="space-y-8 animate-in fade-in zoom-in-95 duration-300">
-          <div className="text-center space-y-2 px-4 shadow-sm pb-4">
-            <h2 className="text-2xl font-bold text-slate-950">Select Contract Interface</h2>
-            <p className="text-slate-500">How would you like the legal document to be formatted visually?</p>
+          <div className="text-center space-y-2 px-4 shadow-sm pb-6">
+            <h2 className="text-3xl font-bold text-slate-950">Select Contract Interface</h2>
+            <p className="text-slate-600 text-sm">How would you like the legal document to be formatted visually? All templates contain the same data with different visual styles.</p>
           </div>
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            <div 
-              onClick={() => setSelectedTemplate("Free")}
-              className={`p-6 rounded-[2.5rem] border-2 transition-all cursor-pointer flex flex-col items-center text-center space-y-4 ${selectedTemplate === "Free" ? "border-indigo-600 bg-indigo-50/50 ring-1 ring-indigo-600" : "border-slate-200 hover:border-slate-300 bg-white"}`}
-            >
-              <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400">📄</div>
-              <div>
-                <h4 className="font-bold text-slate-950 text-lg">Free Version</h4>
-                <p className="text-xs text-slate-500 mt-2 leading-relaxed">Simple monospace formatting. Standard legal layout.</p>
-              </div>
-            </div>
-            
-            <div 
-              onClick={() => setSelectedTemplate("Premium")}
-              className={`p-6 rounded-[2.5rem] border-2 transition-all cursor-pointer flex flex-col items-center text-center space-y-4 relative overflow-hidden ${selectedTemplate === "Premium" ? "border-indigo-600 bg-indigo-50/50 ring-1 ring-indigo-600" : "border-slate-200 hover:border-slate-300 bg-white"}`}
-            >
-              <div className="absolute top-4 right-4 bg-indigo-600 text-white font-bold text-[8px] px-2 py-0.5 rounded-full tracking-tighter">RECOMMENDED</div>
-              <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600">✨</div>
-              <div>
-                <h4 className="font-bold text-slate-950 text-lg">Premium AI Style</h4>
-                <p className="text-xs text-slate-500 mt-2 leading-relaxed">High-fidelity typography, professional structure, and immutable ID.</p>
-              </div>
-            </div>
 
-            <div 
-              onClick={() => setSelectedTemplate("Modern Corporate")}
-              className={`p-6 rounded-[2.5rem] border-2 transition-all cursor-pointer flex flex-col items-center text-center space-y-4 ${selectedTemplate === "Modern Corporate" ? "border-indigo-600 bg-indigo-50/50 ring-1 ring-indigo-600" : "border-slate-200 hover:border-slate-300 bg-white"}`}
-            >
-              <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center text-white">🏛️</div>
-              <div>
-                <h4 className="font-bold text-slate-950 text-lg">Modern Corporate</h4>
-                <p className="text-xs text-slate-500 mt-2 leading-relaxed">Executive sans-serif design. Strong headers and structured sections.</p>
-              </div>
-            </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 max-w-7xl mx-auto px-4">
+            {(Object.keys(TEMPLATE_INFO) as TemplateType[]).map((template) => {
+              const info = TEMPLATE_INFO[template];
+              const templates: Record<TemplateType, { icon: string; bgColor: string; accentColor: string }> = {
+                Basic: { icon: "📄", bgColor: "bg-slate-50", accentColor: "bg-slate-100" },
+                Influencer: { icon: "✨", bgColor: "bg-pink-50", accentColor: "bg-pink-200" },
+                Corporate: { icon: "🏢", bgColor: "bg-slate-900", accentColor: "bg-slate-800" },
+                Professional: { icon: "💼", bgColor: "bg-blue-50", accentColor: "bg-blue-200" },
+                Legal: { icon: "⚖️", bgColor: "bg-amber-50", accentColor: "bg-amber-200" },
+              };
+              const style = templates[template];
+              const isSelected = selectedTemplate === template;
+              return (
+                <button key={template} onClick={() => setSelectedTemplate(template)} className={`p-5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center text-center space-y-3 h-full ${isSelected ? "border-indigo-600 bg-indigo-50/70 ring-2 ring-indigo-400 shadow-lg" : `${style.bgColor} border-slate-200 hover:border-slate-400 hover:shadow-md`}`}>
+                  <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-2xl ${style.accentColor} ${isSelected ? "ring-2 ring-indigo-400" : ""}`}>{style.icon}</div>
+                  <div>
+                    <h4 className={`font-bold text-sm ${template === "Corporate" ? "text-white" : "text-slate-950"}`}>{info.title}</h4>
+                    <p className={`text-xs mt-1 leading-snug ${template === "Corporate" ? "text-slate-300" : "text-slate-600"}`}>{info.description}</p>
+                  </div>
+                  {isSelected && <div className="mt-2 px-3 py-1 bg-indigo-600 text-white text-xs font-bold rounded-full">✓ Selected</div>}
+                </button>
+              );
+            })}
           </div>
-          
+
           <div className="flex flex-col items-center gap-4">
-            <button onClick={startGeneration} className="w-full max-w-sm bg-slate-950 text-white px-10 py-5 rounded-2xl font-bold text-sm shadow-indigo-200/50 shadow-lg hover:bg-slate-800 transition-all">
-              Use Template
+            <button onClick={startGeneration} className="w-full max-w-md bg-indigo-600 text-white px-10 py-5 rounded-2xl font-bold text-sm shadow-lg shadow-indigo-200/50 hover:bg-indigo-700 transition-all active:scale-95 flex items-center justify-center gap-2">
+              <span>→</span> Generate {selectedTemplate} Contract
             </button>
-            <button onClick={() => setStep("input")} className="text-sm font-medium text-slate-500 hover:text-slate-800">
+            <button onClick={() => setStep("input")} className="text-sm font-medium text-slate-500 hover:text-slate-700 transition-colors">
               ← Back to Details
             </button>
           </div>

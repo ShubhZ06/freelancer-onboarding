@@ -119,7 +119,7 @@ export function PitchModal({ lead, onClose }: Props) {
         {step === "setup" && (
           <form onSubmit={handleSetupSubmit} className="flex flex-col gap-4 p-6">
             <p className="text-sm text-slate-600">
-              Enter your details once — they'll be saved locally and reused for every pitch.
+              Enter your details once — they&apos;ll be saved locally and reused for every pitch.
             </p>
             <label className="flex flex-col gap-1 text-xs font-medium text-slate-600">
               Your name
