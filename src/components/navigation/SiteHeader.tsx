@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { readSessionUser, signOutUser, type AuthUser } from "@/lib/auth-session";
+import { signOutUser } from "@/lib/auth-session";
+import { useSessionUser } from "@/lib/use-session-user";
 import { AppNav } from "./AppNav";
 
 export function SiteHeader() {
   const router = useRouter();
-  const [user] = useState<AuthUser | null>(() => readSessionUser());
+  const user = useSessionUser();
 
   function handleSignOut() {
     signOutUser();
