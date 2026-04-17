@@ -24,6 +24,12 @@
 .DS_Store
 *.pem
 
+# --- Local / machine-only (do not commit) ---
+# Keep tracking root JSON that defines the app: package.json, package-lock.json, tsconfig.json.
+# What you see as "M" for package*.json is normal after dependency changes — stage & commit those.
+.claude/
+**/settings.local.json
+
 # debug
 npm-debug.log*
 yarn-debug.log*

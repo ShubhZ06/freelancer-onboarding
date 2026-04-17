@@ -9,6 +9,7 @@ const navigationItems = [
   { href: "/contracts", label: "Contracts" },
   { href: "/signing", label: "Signing" },
   { href: "/expenses", label: "Expenses" },
+  { href: "/communications", label: "Communications" },
   { href: "/settings", label: "Setup" },
 ];
 
