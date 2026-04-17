@@ -31,12 +31,21 @@ const moduleLinks = [
     icon: "📄",
   },
   {
+    href: "/payment/generate",
+    label: "Client payment",
+    detail: "Generate a Stripe checkout link for your client.",
+    why: "Hosted pay page — copy the link or send payment details via WhatsApp.",
+    tone: "bg-[#86efac]",
+    num: "05",
+    icon: "💳",
+  },
+  {
     href: "/settings",
     label: "Settings",
     detail: "Manage profile and defaults.",
     why: "Set defaults once so every workflow starts your way.",
     tone: "bg-[#ff6b6b]",
-    num: "04",
+    num: "06",
     icon: "⚙",
   },
 ];
@@ -84,11 +93,11 @@ export default function DashboardPage() {
               Jump To A Module
             </h2>
           </div>
-          <span className="neo-pill neo-tag-accent">04</span>
+          <span className="neo-pill neo-tag-accent">06</span>
         </header>
         <div className="grid gap-5 p-6 sm:grid-cols-2 sm:p-8">
           {moduleLinks.map((module, idx) => {
-            const tilts = ["-rotate-1", "rotate-1", "-rotate-1", "rotate-1"];
+            const tilts = ["-rotate-1", "rotate-1", "-rotate-1", "rotate-1", "-rotate-1", "rotate-1"];
             return (
               <Link
                 key={module.href}

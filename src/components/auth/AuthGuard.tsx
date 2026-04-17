@@ -13,12 +13,14 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   const [authorised, setAuthorised] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const user = readSessionUser();
-    if (!user) {
-      router.replace("/sign-in");
-    } else {
-      setAuthorised(true);
-    }
+    queueMicrotask(() => {
+      const user = readSessionUser();
+      if (!user) {
+        router.replace("/sign-in");
+      } else {
+        setAuthorised(true);
+      }
+    });
   }, [router]);
 
   /* Still checking — show a quick loading state */
