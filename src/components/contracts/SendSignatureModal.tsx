@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 
-function escapePdfText(value) {
+function escapePdfText(value: string): string {
   const latinSafe = value.normalize("NFKD").replace(/[^\x00-\xFF]/g, "-");
   return latinSafe.replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
 }
 
-function buildFallbackPdfBase64(documentName, recipientName) {
+function buildFallbackPdfBase64(documentName: string, recipientName: string): string {
   const lineA = escapePdfText(`Contract: ${documentName || "Freelance Agreement"}`);
   const lineB = escapePdfText(`Recipient: ${recipientName || "Client"}`);
   const lineC = escapePdfText(`Generated: ${new Date().toISOString()}`);
@@ -63,25 +63,25 @@ function buildFallbackPdfBase64(documentName, recipientName) {
 //   onSendSuccess — called after a successful API response
 // ---------------------------------------------------------------------------
 
-/**
- * @param {{
- *   documentName: string;
- *   contractId: string;
- *   pdfBase64?: string;
- *   isPreparingDocument?: boolean;
- *   documentPrepError?: string;
- *   initialClientName?: string;
- *   initialClientEmail?: string;
- *   onClose: () => void;
- *   onSendSuccess?: (result: {
- *     signingUrl: string;
- *     documentId: string;
- *     contractId: string | null;
- *     clientName: string;
- *     clientEmail: string;
- *   }) => void;
- * }} props
- */
+interface SendSignatureModalProps {
+  documentName: string;
+  contractId: string;
+  pdfBase64?: string;
+  isPreparingDocument?: boolean;
+  documentPrepError?: string;
+  initialClientName?: string;
+  initialClientEmail?: string;
+  onClose: () => void;
+  onSendSuccess?: (result: {
+    signingUrl: string;
+    documentId: string;
+    contractId: string | null;
+    clientName: string;
+    clientEmail: string;
+  }) => void;
+}
+
+
 export function SendSignatureModal({
   documentName,
   contractId,
@@ -92,7 +92,7 @@ export function SendSignatureModal({
   initialClientEmail = "",
   onClose,
   onSendSuccess,
-}) {
+}: SendSignatureModalProps) {
   const [clientName, setClientName] = useState(initialClientName);
   const [clientEmail, setClientEmail] = useState(initialClientEmail);
   const [isSending, setIsSending] = useState(false);
@@ -101,7 +101,7 @@ export function SendSignatureModal({
 
   // ── Keyboard: close on Escape ──────────────────────────────────────────────
   useEffect(() => {
-    const handleKey = (e) => {
+    const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape" && !isSending) onClose();
     };
     document.addEventListener("keydown", handleKey);
@@ -109,12 +109,12 @@ export function SendSignatureModal({
   }, [isSending, onClose]);
 
   // ── Backdrop click ─────────────────────────────────────────────────────────
-  const handleBackdropClick = (e) => {
+  const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === backdropRef.current && !isSending) onClose();
   };
 
   // ── Form submit ────────────────────────────────────────────────────────────
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (isPreparingDocument || documentPrepError) {
@@ -166,46 +166,45 @@ export function SendSignatureModal({
   };
 
   return (
-    /* ── Backdrop ──────────────────────────────────────────────────────────── */
     <div
       ref={backdropRef}
       onClick={handleBackdropClick}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
       aria-modal="true"
       role="dialog"
       aria-labelledby="ssm-title"
     >
-      {/* ── Modal card ─────────────────────────────────────────────────────── */}
-      <div className="relative flex w-full max-w-lg flex-col rounded-2xl bg-white shadow-2xl">
+      <div className="relative flex w-full max-w-xl flex-col border-4 border-black bg-white neo-shadow-lg">
 
-        {/* ── Header ─────────────────────────────────────────────────────── */}
-        <div className="flex items-start justify-between border-b border-slate-100 px-6 py-5">
+        <div className="flex items-start justify-between border-b-4 border-black bg-[#ffd93d] px-6 py-5">
           <div className="min-w-0 pr-4">
+            <span className="font-heading text-[10px] font-black uppercase tracking-[0.3em] text-black">
+              E-Signature
+            </span>
             <h2
               id="ssm-title"
-              className="text-sm font-semibold text-slate-900"
+              className="font-heading mt-1 text-2xl font-black uppercase leading-tight tracking-tight text-black"
             >
-              Send Contract for Signature
+              Send For Signature
             </h2>
-            <p className="mt-0.5 truncate text-xs text-slate-500">
+            <p className="mt-1 truncate text-sm font-bold text-black/80">
               {documentName}
             </p>
           </div>
 
-          {/* X close button */}
           <button
             type="button"
             onClick={onClose}
             disabled={isSending}
             aria-label="Close modal"
-            className="shrink-0 rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:pointer-events-none disabled:opacity-40"
+            className="shrink-0 border-[3px] border-black bg-white p-2 font-heading text-black transition-all hover:bg-[#ff6b6b] disabled:pointer-events-none disabled:opacity-40"
           >
             <svg
               className="h-4 w-4"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
-              strokeWidth={2}
+              strokeWidth={3}
             >
               <path
                 strokeLinecap="round"
@@ -216,25 +215,21 @@ export function SendSignatureModal({
           </button>
         </div>
 
-        {/* ── Body ───────────────────────────────────────────────────────── */}
         <form id="send-signature-form" onSubmit={handleSubmit}>
           <div className="flex flex-col gap-5 p-6">
 
-            {/* Contract details card */}
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-slate-400">
-                Contract details
+            <div className="border-4 border-black bg-[#fffdf5] p-5">
+              <p className="font-heading mb-4 text-[10px] font-black uppercase tracking-[0.3em] text-black">
+                Contract Details
               </p>
 
-              {/* Two inputs side-by-side */}
-              <div className="grid grid-cols-2 gap-3">
-                {/* Recipient */}
-                <div className="flex flex-col gap-1">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="flex flex-col gap-2">
                   <label
                     htmlFor="ssm-recipient"
-                    className="text-xs font-medium text-slate-500"
+                    className="font-heading text-xs font-black uppercase tracking-[0.2em] text-black"
                   >
-                    Recipient <span className="text-red-400">*</span>
+                    Recipient <span className="text-[#ff6b6b]">*</span>
                   </label>
                   <input
                     id="ssm-recipient"
@@ -244,17 +239,16 @@ export function SendSignatureModal({
                     onChange={(e) => setClientName(e.target.value)}
                     placeholder="Jane Doe"
                     disabled={isSending}
-                    className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder-slate-300 shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 disabled:opacity-50"
+                    className="neo-input disabled:opacity-50"
                   />
                 </div>
 
-                {/* Email */}
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-2">
                   <label
                     htmlFor="ssm-email"
-                    className="text-xs font-medium text-slate-500"
+                    className="font-heading text-xs font-black uppercase tracking-[0.2em] text-black"
                   >
-                    Email <span className="text-red-400">*</span>
+                    Email <span className="text-[#ff6b6b]">*</span>
                   </label>
                   <input
                     id="ssm-email"
@@ -264,41 +258,24 @@ export function SendSignatureModal({
                     onChange={(e) => setClientEmail(e.target.value)}
                     placeholder="jane@example.com"
                     disabled={isSending}
-                    className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder-slate-300 shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 disabled:opacity-50"
+                    className="neo-input disabled:opacity-50"
                   />
                 </div>
               </div>
 
-              {/* Document name row */}
-              <div className="mt-3">
-                <p className="text-xs text-slate-400">Document</p>
-                <p className="mt-0.5 text-sm font-medium text-slate-800">
+              <div className="mt-4 border-t-[3px] border-black pt-3">
+                <p className="font-heading text-[10px] font-black uppercase tracking-[0.3em] text-black/60">Document</p>
+                <p className="mt-1 text-sm font-bold text-black">
                   {documentName}
                 </p>
               </div>
             </div>
 
-            {/* Blue info alert */}
-            <div className="flex items-start gap-2.5 rounded-xl border border-blue-100 bg-blue-50/60 px-4 py-3">
-              {/* Info icon */}
-              <svg
-                className="mt-0.5 h-4 w-4 shrink-0 text-blue-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"
-                />
-              </svg>
-              <p className="text-xs leading-relaxed text-blue-700">
-                The contract PDF will be uploaded to Documenso and the recipient
-                will receive a secure signing link.{" "}
-                <span className="font-semibold">You control sharing.</span>
+            <div className="flex items-start gap-3 border-4 border-black bg-[#c4b5fd] px-4 py-3 neo-shadow-sm">
+              <span className="font-heading text-xl font-black" aria-hidden="true">ℹ</span>
+              <p className="text-sm font-bold leading-snug text-black">
+                The contract PDF will be uploaded to Documenso. The recipient gets a secure signing link.{" "}
+                <span className="font-heading uppercase tracking-wider">You control sharing.</span>
               </p>
             </div>
 
@@ -315,30 +292,26 @@ export function SendSignatureModal({
             )}
           </div>
 
-          {/* ── Footer ─────────────────────────────────────────────────────── */}
-          <div className="flex items-center justify-end gap-3 border-t border-slate-100 px-6 py-4">
-            {/* Cancel */}
+          <div className="flex flex-wrap items-center justify-end gap-3 border-t-4 border-black bg-white px-6 py-4">
             <button
               type="button"
               onClick={onClose}
               disabled={isSending || isPreparingDocument}
-              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-40"
+              className="neo-btn text-xs disabled:pointer-events-none disabled:opacity-40"
             >
               Cancel
             </button>
 
-            {/* Send to Client */}
             <button
               type="submit"
               form="send-signature-form"
               disabled={isSending || isPreparingDocument || !!documentPrepError}
-              className="flex min-w-32.5 items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-slate-800 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-60"
+              className="neo-btn neo-btn-primary text-xs disabled:pointer-events-none disabled:opacity-60"
             >
               {isPreparingDocument ? (
                 <>Preparing...</>
               ) : isSending ? (
                 <>
-                  {/* Spinner */}
                   <svg
                     className="h-4 w-4 animate-spin"
                     xmlns="http://www.w3.org/2000/svg"
@@ -363,24 +336,7 @@ export function SendSignatureModal({
                   Sending…
                 </>
               ) : (
-                <>
-                  {/* Send icon */}
-                  <svg
-                    className="h-3.5 w-3.5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"
-                    />
-                  </svg>
-                  Send to Client
-                </>
+                <>Send to Client →</>
               )}
             </button>
           </div>

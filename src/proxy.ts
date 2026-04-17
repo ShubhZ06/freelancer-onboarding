@@ -7,10 +7,6 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const sessionCookie = request.cookies.get("fos_session")?.value;
 
-  if (pathname === "/" && sessionCookie) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
-  }
-
   if ((pathname === "/sign-in" || pathname === "/sign-up") && sessionCookie) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }

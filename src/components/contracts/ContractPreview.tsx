@@ -22,10 +22,9 @@ export function ContractPreview({ result, templateType, onSend }: Props) {
   const stableDocumentId = buildStableDocumentId(result.contract || result.summary || "contract");
 
   return (
-    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="space-y-8">
       <style jsx global>{`
         @media print {
-          /* Aggressive Reset for Paper */
           @page {
             margin: 1cm !important;
             size: A4 portrait;
@@ -36,31 +35,27 @@ export function ContractPreview({ result, templateType, onSend }: Props) {
             margin: 0 !important;
             padding: 0 !important;
             width: 100% !important;
+            background-image: none !important;
           }
 
-          /* Hide ALL dashboard chrome, headers, and UI elements */
           header, nav, aside, footer, .no-print {
             display: none !important;
           }
 
-          /* Target WorkspaceShell and PageSection headers specifically */
-          main > section:first-child, /* Shell Header */
-          section > div:first-of-type, /* PageSection Titles */
-          main > div:not(.contract-workspace-container) { /* Other sections on page */
+          main > section:first-child,
+          section > div:first-of-type,
+          main > div:not(.contract-workspace-container) {
             display: none !important;
           }
 
-          /* Remove all section styling to avoid borders/shadows on paper */
           main, section, .contract-workspace-container {
             margin: 0 !important;
             padding: 0 !important;
             border: none !important;
             box-shadow: none !important;
             background: transparent !important;
-            backdrop-filter: none !important;
           }
 
-          /* Ensure only the contract wrapper is isolated */
           .contract-document-wrapper {
             visibility: visible !important;
             position: static !important;
@@ -68,10 +63,11 @@ export function ContractPreview({ result, templateType, onSend }: Props) {
             width: 100% !important;
             margin: 0 !important;
             padding: 0 !important;
-            page-break-before: avoid;
+            border: none !important;
+            box-shadow: none !important;
+            background: white !important;
           }
 
-          /* typography fixes for print */
           pre {
             white-space: pre-wrap !important;
             word-wrap: break-word !important;
@@ -83,86 +79,83 @@ export function ContractPreview({ result, templateType, onSend }: Props) {
         }
       `}</style>
 
-      {/* Summary Section - Hidden in Print */}
-      <div className="relative overflow-hidden border-4 border-black bg-white p-8 no-print">
-        <div className="absolute inset-0 swiss-dots opacity-30" />
-        <div className="flex items-center gap-3 mb-6">
-          <div className="flex h-8 w-8 items-center justify-center border-2 border-black bg-swiss-accent text-xs font-black text-black">
-            i
+      {/* Plain English summary — hidden in print */}
+      <div className="relative overflow-hidden border-4 border-black bg-[#ffd93d] p-6 neo-shadow-md no-print sm:p-8">
+        <div aria-hidden className="pointer-events-none absolute inset-0 pattern-halftone opacity-20" />
+        <div className="relative">
+          <div className="mb-5 flex items-center gap-3">
+            <span className="inline-flex h-10 w-10 items-center justify-center border-[3px] border-black bg-white font-heading text-lg font-black">
+              i
+            </span>
+            <h4 className="font-heading text-3xl font-black uppercase tracking-tight text-black">
+              Plain English Summary
+            </h4>
           </div>
-          <h4 className="text-lg font-black uppercase tracking-tight text-black">Plain English Summary</h4>
-        </div>
-        <div className="relative z-10">
-          <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-black font-medium">
+          <pre className="whitespace-pre-wrap font-body text-base font-bold leading-relaxed text-black">
             {result.summary}
           </pre>
         </div>
       </div>
 
-      {/* Contract Section */}
+      {/* Contract document */}
       <div
-        className={`contract-document-wrapper transition-all duration-700 rounded-[2.5rem] border relative ${
-          isPremium
-            ? "bg-white p-10 sm:p-16 border-4 border-black"
-            : isCorporate
-            ? "bg-white p-10 sm:p-16 border-4 border-black"
-            : "bg-white p-10 border-4 border-black"
+        className={`contract-document-wrapper border-4 border-black bg-white neo-shadow-lg ${
+          isPremium || isCorporate ? "p-8 sm:p-14" : "p-8 sm:p-10"
         }`}
       >
         {(isPremium || isCorporate) && (
-          <div className="mb-10 flex items-end justify-between border-b-2 border-black pb-8">
+          <div className="mb-10 flex items-end justify-between border-b-4 border-black pb-6">
             <div className="space-y-2">
-              <h2 className="text-3xl font-black uppercase tracking-tighter text-black">
+              <h2 className="font-heading text-3xl font-black uppercase tracking-tighter text-black sm:text-4xl">
                 {isCorporate ? "Professional Services Agreement" : "Freelance Services Agreement"}
               </h2>
-              <div className="flex gap-4">
-                <span className="text-[10px] text-slate-400 uppercase tracking-[0.2em] font-bold">VERIFIED DOCUMENT</span>
-                <span className="text-[10px] text-slate-400 uppercase tracking-[0.2em] font-bold">ID: {stableDocumentId}</span>
+              <div className="flex flex-wrap gap-2">
+                <span className="neo-tag">Verified</span>
+                <span className="neo-tag neo-tag-yellow">ID: {stableDocumentId}</span>
               </div>
             </div>
-            <div className="text-right">
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] leading-loose text-black/50">Status: FINAL</p>
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] leading-loose text-black/50">Code: 202-A</p>
+            <div className="text-right space-y-1">
+              <p className="font-heading text-[10px] font-black uppercase tracking-[0.25em] text-black">Status: Final</p>
+              <p className="font-heading text-[10px] font-black uppercase tracking-[0.25em] text-black">Code: 202-A</p>
             </div>
           </div>
         )}
 
-        <div className="relative">
-          <pre
-            className={`whitespace-pre-wrap transition-all duration-500 relative z-10 ${
-              isPremium
-                ? "font-sans text-[1.02rem] leading-[1.85] text-black"
-                : isCorporate
-                ? "font-sans text-[1rem] leading-[1.8] text-black font-medium"
-                : "font-mono text-xs leading-[1.7] text-black/75"
-            }`}
-          >
-            {result.contract}
-          </pre>
-        </div>
+        <pre
+          className={`whitespace-pre-wrap text-black ${
+            isPremium
+              ? "font-body text-[1.02rem] leading-[1.85]"
+              : isCorporate
+              ? "font-body text-base leading-[1.8]"
+              : "font-body text-sm leading-[1.7]"
+          }`}
+        >
+          {result.contract}
+        </pre>
 
         {(isPremium || isCorporate) && (
-          <div className="mt-10 flex justify-between border-t-2 border-black pt-8 text-[10px] font-black uppercase tracking-[0.3em] text-black/50">
+          <div className="mt-10 flex justify-between border-t-4 border-black pt-6 font-heading text-[10px] font-black uppercase tracking-[0.3em] text-black">
             <span>© 2026 {isCorporate ? "Corporate Legal Entity" : "FreelancerOS Legal Engine"}</span>
             <span>Document Protected</span>
           </div>
         )}
       </div>
 
-      {/* CTA Section - Hidden in Print */}
-      <div className="flex flex-col sm:flex-row gap-4 pt-4 no-print">
-        <button 
+      {/* CTA buttons — hidden in print */}
+      <div className="flex flex-col gap-4 sm:flex-row no-print">
+        <button
+          type="button"
           onClick={() => window.print()}
-          className="flex-1 border-2 border-black bg-white px-6 py-4 text-sm font-black uppercase tracking-[0.22em] text-black transition hover:bg-swiss-muted flex items-center justify-center gap-2"
+          className="neo-btn neo-btn-secondary flex-1 py-4"
         >
           Print / Save PDF
         </button>
-        <button 
+        <button
+          type="button"
           onClick={onSend}
-          className="flex-2 bg-indigo-600 text-white rounded-2xl py-4 px-6 font-bold text-sm shadow-xl shadow-indigo-200 hover:bg-indigo-700 hover:shadow-2xl transition-all flex items-center justify-center gap-2 group"
+          className="neo-btn neo-btn-primary flex-[2] py-4"
         >
-          Send for Digital Signature
-          <span className="ml-1 opacity-0 transition-all group-hover:opacity-100 group-hover:translate-x-1">→</span>
+          Send for Digital Signature →
         </button>
       </div>
     </div>

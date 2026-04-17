@@ -60,90 +60,144 @@ export function AuthForm({ mode }: Props) {
     router.push(nextPath);
   }
 
+  const isSignUp = mode === "sign-up";
+
   return (
-    <section className="grid gap-8 border-4 border-black bg-white p-6 sm:p-8 lg:grid-cols-[1.1fr_0.9fr] lg:p-10">
-      <div className="space-y-6">
-        <p className="text-xs font-black uppercase tracking-[0.32em] text-swiss-accent">
-          {mode === "sign-up" ? "Create Account" : "Welcome Back"}
-        </p>
-        <div className="space-y-3">
-          <h1 className="max-w-xl text-3xl font-black uppercase tracking-tighter text-black sm:text-4xl">
-            {mode === "sign-up" ? "Create your workspace access" : "Sign in to your dashboard"}
+    <section className="relative grid gap-10 border-4 border-black bg-[#fffdf5] p-6 neo-shadow-lg sm:p-10 lg:grid-cols-[1.1fr_1fr] lg:p-12">
+      {/* Decorative floaters */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-4 -top-4 hidden h-16 w-16 border-4 border-black bg-[#ffd93d] neo-shadow-sm lg:block"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-4 left-10 hidden h-10 w-10 rotate-45 border-4 border-black bg-[#ff6b6b] lg:block"
+      />
+
+      <div className="flex flex-col gap-8">
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="neo-tag neo-tag-accent">
+            {isSignUp ? "New / Account" : "Welcome / Back"}
+          </span>
+          <span aria-hidden className="h-[3px] w-12 bg-black" />
+        </div>
+
+        <div className="space-y-4">
+          <h1 className="font-heading max-w-xl text-5xl font-black uppercase leading-[0.95] tracking-tighter text-black sm:text-6xl md:text-7xl">
+            {isSignUp ? (
+              <>
+                Clock
+                <br />
+                <span className="bg-[#ff6b6b] px-2 text-white text-shadow-hard">
+                  In.
+                </span>
+              </>
+            ) : (
+              <>
+                Back to
+                <br />
+                <span className="bg-[#ffd93d] px-2 text-black">
+                  Work.
+                </span>
+              </>
+            )}
           </h1>
-          <p className="max-w-xl text-sm leading-7 text-black/70 sm:text-base">
-            {mode === "sign-up"
-              ? "Set up your account once, then move straight into the dashboard and protected workspace."
-              : "Use your workspace account to get back to the dashboard, leads, contracts, and client communication tools."}
+          <p className="max-w-xl text-lg font-bold leading-snug text-black sm:text-xl">
+            {isSignUp
+              ? "Spin up your workspace in 30 seconds. No credit card, no corporate nonsense."
+              : "Get back to your dashboard, contracts, and clients. Let's move."}
           </p>
         </div>
 
-        <div className="border-2 border-black bg-swiss-muted p-4 text-sm leading-6 text-black">
-          Authentication here is local to this workspace demo. It gives you the public landing, sign-in, sign-up, and route protection structure you asked for.
+        <div className="border-4 border-black bg-[#c4b5fd] p-5 neo-shadow-sm">
+          <p className="font-heading text-xs font-black uppercase tracking-[0.25em] text-black">
+            Demo Notice
+          </p>
+          <p className="mt-2 text-sm font-bold leading-snug text-black">
+            Authentication here is local to this workspace demo. Public landing,
+            sign-in, sign-up, and route protection all wired up for you.
+          </p>
         </div>
 
-        <div className="flex flex-wrap gap-3 text-xs font-black uppercase tracking-[0.22em] text-black/50">
-          <span className="border-2 border-black bg-white px-3 py-1">Landing first</span>
-          <span className="border-2 border-black bg-white px-3 py-1">Protected dashboard</span>
-          <span className="border-2 border-black bg-white px-3 py-1">Public auth pages</span>
+        <div className="flex flex-wrap gap-2">
+          <span className="neo-tag neo-tag-yellow">Landing First</span>
+          <span className="neo-tag neo-tag-violet">Protected Dash</span>
+          <span className="neo-tag">Public Auth</span>
         </div>
       </div>
 
-      <form action={handleSubmit} className="space-y-4 border-2 border-black bg-swiss-muted p-5 sm:p-6">
-        {mode === "sign-up" ? (
-          <label className="block space-y-2 text-xs font-black uppercase tracking-[0.24em] text-black/60">
-            Full name
+      <form
+        action={handleSubmit}
+        className="space-y-5 border-4 border-black bg-black p-6 neo-shadow-md sm:p-8"
+      >
+        <div className="flex items-center gap-3 border-b-[3px] border-[#ffd93d] pb-4">
+          <span className="inline-block h-3 w-3 bg-[#ff6b6b]" aria-hidden />
+          <p className="font-heading text-xs font-black uppercase tracking-[0.3em] text-[#ffd93d]">
+            {isSignUp ? "Create Account" : "Sign In"}
+          </p>
+        </div>
+
+        {isSignUp ? (
+          <label className="block space-y-2">
+            <span className="font-heading text-xs font-black uppercase tracking-[0.2em] text-[#ffd93d]">
+              Full name
+            </span>
             <input
               name="name"
               placeholder="Alex Morgan"
               autoComplete="name"
-              className="w-full border-2 border-black bg-white px-4 py-3 text-sm text-black outline-none focus:border-swiss-accent"
+              className="neo-input"
             />
           </label>
         ) : null}
 
-        <label className="block space-y-2 text-xs font-black uppercase tracking-[0.24em] text-black/60">
-          Email
+        <label className="block space-y-2">
+          <span className="font-heading text-xs font-black uppercase tracking-[0.2em] text-[#ffd93d]">
+            Email
+          </span>
           <input
             name="email"
             type="email"
             placeholder="alex@studio.com"
             autoComplete="email"
-            className="w-full border-2 border-black bg-white px-4 py-3 text-sm text-black outline-none focus:border-swiss-accent"
+            className="neo-input"
           />
         </label>
 
-        <label className="block space-y-2 text-xs font-black uppercase tracking-[0.24em] text-black/60">
-          Password
+        <label className="block space-y-2">
+          <span className="font-heading text-xs font-black uppercase tracking-[0.2em] text-[#ffd93d]">
+            Password
+          </span>
           <input
             name="password"
             type="password"
             placeholder="••••••••"
-            autoComplete={mode === "sign-up" ? "new-password" : "current-password"}
-            className="w-full border-2 border-black bg-white px-4 py-3 text-sm text-black outline-none focus:border-swiss-accent"
+            autoComplete={isSignUp ? "new-password" : "current-password"}
+            className="neo-input"
           />
         </label>
 
         {error ? (
-          <p className="border-2 border-black bg-swiss-accent px-4 py-3 text-sm font-medium text-black">
-            {error}
+          <p className="border-[3px] border-black bg-[#ff6b6b] px-4 py-3 text-sm font-bold text-black">
+            ⚠ {error}
           </p>
         ) : null}
 
         <button
           type="submit"
           disabled={pending}
-          className="w-full border-4 border-black bg-black px-6 py-4 text-sm font-black uppercase tracking-[0.24em] text-white transition hover:bg-swiss-accent hover:text-black disabled:cursor-not-allowed disabled:opacity-60"
+          className="neo-btn neo-btn-primary w-full text-base py-4 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {pending ? "Working…" : mode === "sign-up" ? "Create Account" : "Sign In"}
+          {pending ? "Working…" : isSignUp ? "Create Account →" : "Sign In →"}
         </button>
 
-        <p className="text-sm text-black/70">
-          {mode === "sign-up" ? "Already have an account?" : "Need an account?"}{" "}
+        <p className="text-sm font-bold text-white">
+          {isSignUp ? "Already have an account?" : "Need an account?"}{" "}
           <Link
-            href={mode === "sign-up" ? "/sign-in" : "/sign-up"}
-            className="font-black uppercase tracking-[0.22em] text-black underline decoration-2 underline-offset-4"
+            href={isSignUp ? "/sign-in" : "/sign-up"}
+            className="border-b-[3px] border-[#ffd93d] font-heading uppercase tracking-wider text-[#ffd93d] hover:bg-[#ffd93d] hover:text-black"
           >
-            {mode === "sign-up" ? "Sign in" : "Sign up"}
+            {isSignUp ? "Sign in" : "Sign up"}
           </Link>
         </p>
       </form>

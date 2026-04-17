@@ -1,11 +1,24 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #000000;
-  --muted: #f2f2f2;
-  --accent: #ff3000;
+  /* Neo-brutalism palette — high-saturation, pure-ink structure */
+  --background: #fffdf5;           /* cream canvas */
+  --foreground: #000000;           /* pure black ink */
+  --muted: #c4b5fd;                /* soft violet */
+  --accent: #ff6b6b;               /* hot red */
+  --secondary-accent: #ffd93d;     /* vivid yellow */
   --border: #000000;
+  --surface: #ffffff;              /* contrast panel */
+  --ink: #000000;
+
+  /* Hard offset shadows — zero blur, zero spread */
+  --neo-shadow-sm: 4px 4px 0 0 #000;
+  --neo-shadow-md: 8px 8px 0 0 #000;
+  --neo-shadow-lg: 12px 12px 0 0 #000;
+  --neo-shadow-xl: 16px 16px 0 0 #000;
+  --neo-shadow-accent: 8px 8px 0 0 #ff6b6b;
+  --neo-shadow-yellow: 8px 8px 0 0 #ffd93d;
+  --neo-shadow-violet: 8px 8px 0 0 #c4b5fd;
 }
 
 @theme inline {
@@ -13,11 +26,12 @@
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
+  --color-secondary-accent: var(--secondary-accent);
   --color-border: var(--border);
-  --color-swiss-accent: var(--accent);
-  --color-swiss-muted: var(--muted);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-body);
 }
 
 * {
@@ -31,57 +45,338 @@ html {
 body {
   min-height: 100vh;
   background-color: var(--background);
+  /* Halftone dot texture — never leave backgrounds flat */
   background-image:
-    linear-gradient(rgba(0, 0, 0, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 0, 0, 0.025) 1px, transparent 1px),
-    radial-gradient(circle at top right, rgba(255, 48, 0, 0.06), transparent 24%),
-    radial-gradient(circle at bottom left, rgba(0, 0, 0, 0.03), transparent 18%);
-  background-size: 24px 24px, 24px 24px, 100% 100%, 100% 100%;
+    radial-gradient(#000 1.3px, transparent 1.3px),
+    radial-gradient(#000 1.3px, transparent 1.3px);
+  background-size: 28px 28px, 28px 28px;
+  background-position: 0 0, 14px 14px;
   background-attachment: fixed;
   color: var(--foreground);
-  font-family: var(--font-geist-sans), sans-serif;
+  font-family: var(--font-body), "Space Grotesk", system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.005em;
 }
 
 @layer base {
-  /* Keep anchors inheriting color/decoration from parents *unless* a Tailwind
-     utility (e.g. text-white, underline) is applied. Must live inside @layer
-     base — unlayered rules defeat utility layers in the cascade. */
   a {
     color: inherit;
     text-decoration: none;
   }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading), "Space Grotesk", system-ui, sans-serif;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+  }
 }
 
 ::selection {
-  background: var(--accent);
-  color: var(--foreground);
+  background: #ffd93d;
+  color: #000;
 }
 
 @layer utilities {
-  .swiss-grid-pattern {
+  /* Typography */
+  .font-heading {
+    font-family: var(--font-heading), "Space Grotesk", system-ui, sans-serif;
+    font-weight: 900;
+  }
+
+  .font-body {
+    font-family: var(--font-body), "Space Grotesk", system-ui, sans-serif;
+    font-weight: 700;
+  }
+
+  .text-stroke {
+    -webkit-text-stroke: 2px #000;
+    color: transparent;
+  }
+
+  .text-stroke-thin {
+    -webkit-text-stroke: 1.5px #000;
+    color: transparent;
+  }
+
+  .text-shadow-hard {
+    text-shadow: 4px 4px 0 #000;
+  }
+
+  .text-shadow-hard-lg {
+    text-shadow: 6px 6px 0 #000;
+  }
+
+  /* Core neo-brutalism card — bordered, sharp corners, hard shadow */
+  .neo-card {
+    background: var(--surface);
+    border: 4px solid #000;
+    border-radius: 0;
+    box-shadow: var(--neo-shadow-md);
+    transition: transform 200ms ease-out, box-shadow 200ms ease-out;
+  }
+
+  .neo-card-lift:hover {
+    transform: translate(-4px, -4px);
+    box-shadow: var(--neo-shadow-lg);
+  }
+
+  .neo-card-sm {
+    background: var(--surface);
+    border: 3px solid #000;
+    border-radius: 0;
+    box-shadow: var(--neo-shadow-sm);
+    transition: transform 200ms ease-out, box-shadow 200ms ease-out;
+  }
+
+  .neo-card-sm:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 0 #000;
+  }
+
+  .neo-card-xl {
+    background: var(--surface);
+    border: 4px solid #000;
+    border-radius: 0;
+    box-shadow: var(--neo-shadow-lg);
+  }
+
+  /* Buttons — mechanical press-down */
+  .neo-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border: 3px solid #000;
+    border-radius: 0;
+    background: #fff;
+    color: #000;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    box-shadow: var(--neo-shadow-sm);
+    transition: transform 100ms ease-out, box-shadow 100ms ease-out, background 100ms ease-out;
+    cursor: pointer;
+  }
+
+  .neo-btn:hover {
+    background: #ffd93d;
+  }
+
+  .neo-btn:active {
+    transform: translate(3px, 3px);
+    box-shadow: 0 0 0 0 #000;
+  }
+
+  .neo-btn-primary {
+    background: #ff6b6b;
+    color: #000;
+  }
+
+  .neo-btn-primary:hover {
+    background: #ff8787;
+  }
+
+  .neo-btn-secondary {
+    background: #ffd93d;
+    color: #000;
+  }
+
+  .neo-btn-secondary:hover {
+    background: #ffe066;
+  }
+
+  .neo-btn-violet {
+    background: #c4b5fd;
+    color: #000;
+  }
+
+  .neo-btn-violet:hover {
+    background: #d8cdfe;
+  }
+
+  .neo-btn-dark {
+    background: #000;
+    color: #fff;
+  }
+
+  .neo-btn-dark:hover {
+    background: #1a1a1a;
+    color: #ffd93d;
+  }
+
+  .neo-btn-ghost {
+    background: transparent;
+    border: 3px solid transparent;
+    box-shadow: none;
+  }
+
+  .neo-btn-ghost:hover {
+    border-color: #000;
+    background: #ffd93d;
+    box-shadow: var(--neo-shadow-sm);
+  }
+
+  /* Inputs — bold borders, yellow focus */
+  .neo-input {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border: 3px solid #000;
+    border-radius: 0;
+    background: #fff;
+    color: #000;
+    font-weight: 700;
+    font-size: 1rem;
+    outline: none;
+    transition: background 150ms ease-out, box-shadow 150ms ease-out;
+  }
+
+  .neo-input::placeholder {
+    color: rgba(0, 0, 0, 0.4);
+    font-weight: 700;
+  }
+
+  .neo-input:focus {
+    background: #ffd93d;
+    box-shadow: var(--neo-shadow-sm);
+  }
+
+  /* Badges / tags */
+  .neo-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.75rem;
+    border: 3px solid #000;
+    border-radius: 0;
+    background: #fff;
+    color: #000;
+    font-size: 0.7rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+
+  .neo-tag-accent {
+    background: #ff6b6b;
+    color: #000;
+  }
+
+  .neo-tag-yellow {
+    background: #ffd93d;
+    color: #000;
+  }
+
+  .neo-tag-violet {
+    background: #c4b5fd;
+    color: #000;
+  }
+
+  .neo-tag-dark {
+    background: #000;
+    color: #ffd93d;
+  }
+
+  .neo-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.9rem;
+    border: 3px solid #000;
+    border-radius: 9999px;
+    background: #fff;
+    color: #000;
+    font-size: 0.7rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+
+  /* Section block with optional accent fill */
+  .neo-block {
+    border: 4px solid #000;
+    border-radius: 0;
+    box-shadow: var(--neo-shadow-md);
+  }
+
+  /* Shadow helpers */
+  .neo-shadow-sm { box-shadow: var(--neo-shadow-sm); }
+  .neo-shadow-md { box-shadow: var(--neo-shadow-md); }
+  .neo-shadow-lg { box-shadow: var(--neo-shadow-lg); }
+  .neo-shadow-xl { box-shadow: var(--neo-shadow-xl); }
+  .neo-shadow-white {
+    box-shadow: 8px 8px 0 0 #fff;
+  }
+  .neo-shadow-accent { box-shadow: var(--neo-shadow-accent); }
+  .neo-shadow-yellow { box-shadow: var(--neo-shadow-yellow); }
+  .neo-shadow-violet { box-shadow: var(--neo-shadow-violet); }
+
+  /* Background pattern helpers */
+  .pattern-halftone {
+    background-image: radial-gradient(#000 1.5px, transparent 1.5px);
+    background-size: 20px 20px;
+  }
+
+  .pattern-grid {
+    background-size: 40px 40px;
     background-image:
-      linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
-    background-size: 24px 24px;
+      linear-gradient(to right, rgba(0, 0, 0, 0.12) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0, 0, 0, 0.12) 1px, transparent 1px);
   }
 
-  .swiss-dots {
-    background-image: radial-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px);
-    background-size: 16px 16px;
+  .pattern-dots-lg {
+    background-image: radial-gradient(circle, #000 2px, transparent 2.5px);
+    background-size: 30px 30px;
   }
 
-  .swiss-diagonal {
+  .pattern-diagonal {
     background-image: repeating-linear-gradient(
-      135deg,
-      rgba(0, 0, 0, 0.04) 0,
-      rgba(0, 0, 0, 0.04) 1px,
-      transparent 1px,
-      transparent 10px
+      45deg,
+      #000 0 2px,
+      transparent 2px 16px
     );
   }
 
-  .swiss-noise {
-    background-image: radial-gradient(circle, rgba(0, 0, 0, 0.045) 0.7px, transparent 0.7px);
-    background-size: 7px 7px;
+  /* Animations */
+  @keyframes neo-spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .animate-spin-slow {
+    animation: neo-spin-slow 12s linear infinite;
+  }
+
+  @keyframes neo-marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  .animate-marquee {
+    animation: neo-marquee 28s linear infinite;
+  }
+
+  @keyframes neo-wiggle {
+    0%, 100% { transform: rotate(-2deg); }
+    50% { transform: rotate(2deg); }
+  }
+
+  .animate-wiggle {
+    animation: neo-wiggle 1.4s ease-in-out infinite;
+  }
+
+  /* Legacy shim — pages still reference these during migration */
+  .wobbly, .wobbly-md, .wobbly-sm { border-radius: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin-slow,
+  .animate-marquee,
+  .animate-wiggle {
+    animation: none;
+  }
+  .neo-card,
+  .neo-card-sm,
+  .neo-btn {
+    transition: none;
   }
 }

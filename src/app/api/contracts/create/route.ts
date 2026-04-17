@@ -25,6 +25,8 @@
 
 import { getDb } from "@/lib/db/mongodb";
 
+import { type NextRequest } from "next/server";
+
 const DOCUMENSO_API_KEY = process.env.DOCUMENSO_API_KEY;
 const DOCUMENSO_BASE_URL = (process.env.DOCUMENSO_BASE_URL || "https://app.documenso.com").replace(/\/+$/, "");
 
@@ -32,7 +34,7 @@ const DOCUMENSO_BASE_URL = (process.env.DOCUMENSO_BASE_URL || "https://app.docum
  * Small helper that calls a Documenso v2 endpoint and returns the parsed JSON.
  * Throws a descriptive error on non-2xx responses.
  */
-async function documensoFetch(path, options = {}) {
+async function documensoFetch(path: string, options: RequestInit = {}): Promise<Record<string, unknown>> {
   const url = `${DOCUMENSO_BASE_URL}/api/v2${path}`;
 
   const res = await fetch(url, {
@@ -78,7 +80,7 @@ async function documensoFetch(path, options = {}) {
 // Route handler
 // ---------------------------------------------------------------------------
 
-export async function POST(request) {
+export async function POST(request: NextRequest) {
   // 1. Validate environment --------------------------------------------------
   if (!DOCUMENSO_API_KEY) {
     return Response.json(
@@ -216,7 +218,8 @@ export async function POST(request) {
         body: JSON.stringify({ envelopeId }),
       });
 
-      distributedRecipient = distributeGeneric?.recipients?.find(
+      const genericRecipients = (distributeGeneric?.recipients ?? []) as Array<Record<string, unknown>>;
+      distributedRecipient = genericRecipients.find(
         (r) => String(r.email || "").toLowerCase() === clientEmail.toLowerCase()
       ) ?? null;
     } catch (firstErr) {
@@ -228,7 +231,8 @@ export async function POST(request) {
           headers: { "Content-Type": "application/json" },
         });
 
-        distributedRecipient = distributeById?.recipients?.find(
+        const byIdRecipients = (distributeById?.recipients ?? []) as Array<Record<string, unknown>>;
+        distributedRecipient = byIdRecipients.find(
           (r) => String(r.email || "").toLowerCase() === clientEmail.toLowerCase()
         ) ?? null;
       } catch (secondErr) {
@@ -245,32 +249,34 @@ export async function POST(request) {
       headers: { "Content-Type": "application/json" },
     });
 
-    const signer = envelope.recipients?.find(
+    const recipients = (envelope.recipients ?? []) as Array<Record<string, unknown>>;
+    const signer = recipients.find(
       (r) =>
         r.role === "SIGNER" &&
         String(r.email || "").toLowerCase() === clientEmail.toLowerCase()
     );
 
-    const signerToken =
-      signer?.token ||
-      signer?.signingToken ||
-      signer?.directLinkToken ||
-      envelope?.directLink?.token ||
-      createResult?.directLink?.token ||
-      null;
+    const signerToken = (
+      (signer?.token as string | undefined) ||
+      (signer?.signingToken as string | undefined) ||
+      (signer?.directLinkToken as string | undefined) ||
+      ((envelope.directLink as Record<string, unknown> | undefined)?.token as string | undefined) ||
+      ((createResult.directLink as Record<string, unknown> | undefined)?.token as string | undefined) ||
+      null
+    );
 
     const signingUrlCandidates = [
-      distributedRecipient?.signingUrl,
-      distributedRecipient?.url,
-      signer?.signingUrl,
-      signer?.signingLink,
-      signer?.url,
-      envelope?.signingUrl,
-      envelope?.url,
-      createResult?.signingUrl,
-      createResult?.url,
+      (distributedRecipient as Record<string, unknown> | null)?.signingUrl as string | undefined,
+      (distributedRecipient as Record<string, unknown> | null)?.url as string | undefined,
+      signer?.signingUrl as string | undefined,
+      signer?.signingLink as string | undefined,
+      signer?.url as string | undefined,
+      envelope?.signingUrl as string | undefined,
+      envelope?.url as string | undefined,
+      createResult?.signingUrl as string | undefined,
+      createResult?.url as string | undefined,
       signerToken ? `${DOCUMENSO_BASE_URL}/sign/${signerToken}` : null,
-    ].filter((value) => typeof value === "string" && value.trim().length > 0);
+    ].filter((value): value is string => typeof value === "string" && value.trim().length > 0);
 
     const signingUrl = signingUrlCandidates[0] || null;
 

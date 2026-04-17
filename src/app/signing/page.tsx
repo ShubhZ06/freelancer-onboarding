@@ -63,12 +63,12 @@ const DEFAULT_STATUS_CONFIG = {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function getStatusConfig(status) {
-  return STATUS_CONFIG[status] ?? DEFAULT_STATUS_CONFIG;
+function getStatusConfig(status: string) {
+  return STATUS_CONFIG[status as keyof typeof STATUS_CONFIG] ?? DEFAULT_STATUS_CONFIG;
 }
 
 /** Format ISO date string to a readable short date, e.g. "17 Apr 2026" */
-function formatDate(isoString) {
+function formatDate(isoString: string | null | undefined): string | null {
   if (!isoString) return null;
   try {
     return new Date(isoString).toLocaleDateString("en-GB", {
@@ -112,7 +112,7 @@ function SkeletonRow() {
 // StatusBadge
 // ---------------------------------------------------------------------------
 
-function StatusBadge({ status }) {
+function StatusBadge({ status }: { status: string }) {
   const cfg = getStatusConfig(status);
   return (
     <span
@@ -128,7 +128,13 @@ function StatusBadge({ status }) {
 // Summary stats card
 // ---------------------------------------------------------------------------
 
-function StatCard({ label, value, detail, isLoading, accent }) {
+function StatCard({ label, value, detail, isLoading, accent }: {
+  label: string;
+  value?: number;
+  detail?: string;
+  isLoading?: boolean;
+  accent?: string;
+}) {
   return (
     <article
       className={`rounded-[1.5rem] border p-5 ${accent ?? "border-slate-200/70 bg-slate-50"}`}
@@ -155,7 +161,20 @@ function StatCard({ label, value, detail, isLoading, accent }) {
 // Individual contract row
 // ---------------------------------------------------------------------------
 
-function ContractRow({ contract }) {
+interface ContractRecord {
+  _id?: string;
+  documentId?: string;
+  title?: string;
+  clientName?: string;
+  clientEmail?: string;
+  status?: string;
+  updatedAt?: string;
+  createdAt?: string;
+  completedAt?: string;
+  viewedAt?: string;
+}
+
+function ContractRow({ contract }: { contract: ContractRecord }) {
   const updated = formatDate(contract.updatedAt ?? contract.createdAt);
   const completed = formatDate(contract.completedAt);
 
@@ -163,7 +182,7 @@ function ContractRow({ contract }) {
     <div className="flex items-center gap-4 rounded-xl border border-slate-100 bg-white px-4 py-3 transition-colors hover:border-slate-200 hover:bg-slate-50/60">
       {/* Status dot */}
       <span
-        className={`inline-block h-2 w-2 shrink-0 rounded-full ${getStatusConfig(contract.status).dot}`}
+        className={`inline-block h-2 w-2 shrink-0 rounded-full ${getStatusConfig(contract.status ?? "Unknown").dot}`}
       />
 
       {/* Title + meta */}
@@ -183,7 +202,7 @@ function ContractRow({ contract }) {
       </div>
 
       {/* Badge */}
-      <StatusBadge status={contract.status} />
+      <StatusBadge status={contract.status ?? "Unknown"} />
     </div>
   );
 }
@@ -192,7 +211,7 @@ function ContractRow({ contract }) {
 // Grouped contract list
 // ---------------------------------------------------------------------------
 
-function GroupedContractList({ contracts, isLoading }) {
+function GroupedContractList({ contracts, isLoading }: { contracts: ContractRecord[]; isLoading: boolean }) {
   if (isLoading) {
     return (
       <div className="space-y-2">
@@ -221,7 +240,7 @@ function GroupedContractList({ contracts, isLoading }) {
   }
 
   // Group by status, sorted by priority
-  const groups = {};
+  const groups: Record<string, ContractRecord[]> = {};
   for (const contract of contracts) {
     const key = contract.status ?? "Unknown";
     if (!groups[key]) groups[key] = [];
@@ -271,9 +290,9 @@ function GroupedContractList({ contracts, isLoading }) {
 // ---------------------------------------------------------------------------
 
 export default function SigningPage() {
-  const [contracts, setContracts] = useState([]);
+  const [contracts, setContracts] = useState<ContractRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   // ── Fetch all contracts ───────────────────────────────────────────────────
   useEffect(() => {

@@ -7,14 +7,16 @@ import Link from "next/link";
 // ---------------------------------------------------------------------------
 // Status badge component
 // ---------------------------------------------------------------------------
-function StatusBadge({ status }) {
-  const styles = {
+type FetchState = "loading" | "ready" | "error";
+
+function StatusBadge({ status }: { status: FetchState }) {
+  const styles: Record<FetchState, string> = {
     loading: "bg-amber-100 text-amber-700 border-amber-200",
     ready: "bg-emerald-100 text-emerald-700 border-emerald-200",
     error: "bg-red-100 text-red-700 border-red-200",
   };
 
-  const labels = {
+  const labels: Record<FetchState, string> = {
     loading: "Loading…",
     ready: "Ready to Sign",
     error: "Error",
@@ -94,7 +96,7 @@ function SigningCanvasSkeleton() {
 // ---------------------------------------------------------------------------
 // Error state
 // ---------------------------------------------------------------------------
-function ErrorState({ message, onRetry }) {
+function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-5 rounded-2xl border border-red-200/60 bg-gradient-to-br from-red-50 via-white to-red-50 p-10 text-center">
       <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-100">
@@ -134,15 +136,22 @@ function ErrorState({ message, onRetry }) {
 // ---------------------------------------------------------------------------
 // Main page component
 // ---------------------------------------------------------------------------
+interface ContractMeta {
+  title: string;
+  clientName: string;
+  status: string;
+  documentId: string;
+}
+
 export default function ContractSigningPage() {
   const params = useParams();
-  const contractId = params?.id;
+  const contractId = params?.id as string | undefined;
 
-  const [signingUrl, setSigningUrl] = useState(null);
-  const [contractMeta, setContractMeta] = useState(null);
+  const [signingUrl, setSigningUrl] = useState<string | null>(null);
+  const [contractMeta, setContractMeta] = useState<ContractMeta | null>(null);
   const [iframeLoaded, setIframeLoaded] = useState(false);
-  const [error, setError] = useState(null);
-  const [fetchState, setFetchState] = useState("loading"); // loading | ready | error
+  const [error, setError] = useState<string | null>(null);
+  const [fetchState, setFetchState] = useState<FetchState>("loading");
 
   // Fetch contract details + signing URL from our backend
   const fetchContract = useCallback(async () => {
@@ -188,7 +197,7 @@ export default function ContractSigningPage() {
 
   // Listen for Documenso postMessage events from the iframe
   useEffect(() => {
-    function handleMessage(event) {
+    function handleMessage(event: MessageEvent) {
       // Documenso iframes send postMessage events on signing completion
       if (event.data?.type === "DOCUMENT_SIGNED" || event.data?.action === "DOCUMENT_COMPLETED") {
         setContractMeta((prev) =>

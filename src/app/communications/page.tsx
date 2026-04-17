@@ -7,7 +7,7 @@ export default function CommunicationsPage() {
 
   return (
     <WorkspaceShell
-      eyebrow="Communications"
+      eyebrow="Client Communication"
       title="Keep every client informed and move stuck projects forward"
       description="WhatsApp (Twilio) goes to the number in TWILIO_WHATSAPP_TO; updates and warnings are composed per client."
     >

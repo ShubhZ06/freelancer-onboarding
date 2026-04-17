@@ -2,64 +2,46 @@ import { WorkspaceShell } from "@/components/navigation";
 import { InsightCard, ListCard, PageSection } from "@/components/workspace";
 
 export default function ExpensesPage() {
+  const expenseSignals = [
+    "Monthly spend trend by category: software, subcontractors, and ops.",
+    "Renewal calendar for subscriptions so you can cancel before auto-charge.",
+    "Margin alerts when tooling costs rise faster than project income.",
+  ];
+
   return (
     <WorkspaceShell
       eyebrow="Expenses"
-      title="A dedicated spending page for cost visibility and budget control"
-      description="Expenses should live on their own page because the user needs a slower, more analytical view here than they do in acquisition or contracts."
+      title="Kill The Margin Leaks"
+      description="Subscription creep is silent revenue loss. This page makes it loud."
     >
+      <div className="grid gap-6 md:grid-cols-3">
+        <InsightCard label="Monthly Spend" value="$487" detail="Across 9 active subscriptions." tone="accent" tilt="left" />
+        <InsightCard label="Renewing Soon" value="03" detail="Figma, Linear, Notion — all within 10 days." tone="yellow" tilt="none" />
+        <InsightCard label="Margin" value="68%" detail="Healthy. Below 60% triggers alerts." tone="violet" tilt="right" />
+      </div>
+
       <PageSection
-        title="AI operating cost snapshot"
-        description="This page should become the user’s financial control room for subscriptions, usage, and waste detection."
+        title="How This Module Helps"
+        description="Expenses makes hidden costs visible so your freelance margin stays healthy."
+        tone="yellow"
+        eyebrow="Why"
       >
-        <div className="grid gap-4 md:grid-cols-3">
-          <InsightCard
-            label="Monthly burn"
-            value="$842"
-            detail="Live subscription view across imported and connected sources."
-          />
-          <InsightCard
-            label="Budget usage"
-            value="79%"
-            detail="Close enough to justify proactive alerting and review."
-          />
-          <InsightCard
-            label="Waste candidates"
-            value="4"
-            detail="Subscriptions with low activity or weak recent value."
-          />
+        <div className="border-4 border-black bg-[#fffdf5] p-5 neo-shadow-sm">
+          <p className="text-lg font-bold leading-relaxed text-black">
+            Review spend trends and renewal pressure in one place{" "}
+            <span className="bg-[#ff6b6b] px-2">before</span> pricing your next client scope.
+          </p>
         </div>
       </PageSection>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <PageSection
-          title="Recommended future modules"
-          description="The spending experience should balance overview metrics with decision support."
-        >
-          <ListCard
-            title="Primary modules"
-            items={[
-              "Monthly burn dashboard with category chart and month-over-month context.",
-              "Subscription registry table with usage, renewal timing, and inactivity warnings.",
-              "Tax export and budget alert center for practical operations work.",
-            ]}
-          />
-        </PageSection>
-
-        <PageSection
-          title="UX principle"
-          description="Users should quickly see where money is going and what action matters."
-        >
-          <ListCard
-            title="Best experience direction"
-            items={[
-              "Keep the top of the page summary-heavy and the lower section detail-heavy.",
-              "Surface alert thresholds and inactive tools before raw transaction lists.",
-              "Let category and vendor filters persist so repeated financial reviews feel efficient.",
-            ]}
-          />
-        </PageSection>
-      </div>
+      <PageSection
+        title="What You Can Do"
+        description="Practical outcomes from this page."
+        tone="cream"
+        eyebrow="Actions"
+      >
+        <ListCard title="Expense Workflow" items={expenseSignals} tone="accent" />
+      </PageSection>
     </WorkspaceShell>
   );
 }

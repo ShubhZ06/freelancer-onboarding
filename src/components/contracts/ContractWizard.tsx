@@ -1,11 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { ContractInput, generateContract, ContractResult, FreelancerType } from "@/lib/contract-engine";
-import { ContractPreview } from "./ContractPreview";
+import type { ChangeEvent } from "react";
+import {
+  type ContractInput,
+  type ContractResult,
+  type FreelancerType,
+  generateContract,
+} from "@/lib/contract-engine";
+import { ContractCanvas } from "./ContractCanvas";
 import { SendSignatureModal } from "./SendSignatureModal";
 
 type Step = "input" | "template" | "generating" | "preview";
+type TemplateType = "Free" | "Premium" | "Modern Corporate";
 
 type SentData = { signingUrl: string; contractId: string | null; clientName: string; documentName: string };
 
@@ -111,14 +118,16 @@ function buildGeneratedContractPdfBase64(documentName: string, summary: string, 
   return btoa(pdf);
 }
 
-const freelancerTypes: { id: FreelancerType; label: string; icon: string; example: string }[] = [
-  { id: "Software Development", label: "Web/App Developer", icon: "💻", example: "Next.js Mobile App" },
-  { id: "Design", label: "Designer", icon: "🎨", example: "Brand Identity & Logo" },
-  { id: "Digital Marketing", label: "Marketer", icon: "📈", example: "SEO & Google Ads" },
-  { id: "Video Editing", label: "Video Editor", icon: "🎬", example: "YouTube Social Reels" },
-  { id: "Writing", label: "Writer", icon: "✍️", example: "Blog Series & Copy" },
-  { id: "Consulting", label: "Consultant", icon: "🤝", example: "Business Strategy" },
+const freelancerTypes: Array<{ id: FreelancerType; label: string; example: string; tone: string }> = [
+  { id: "Software Development", label: "Web/App Dev", example: "Next.js web app", tone: "bg-[#ff6b6b]" },
+  { id: "Design", label: "Designer", example: "Brand identity", tone: "bg-[#ffd93d]" },
+  { id: "Digital Marketing", label: "Marketer", example: "SEO and ads", tone: "bg-[#c4b5fd]" },
+  { id: "Video Editing", label: "Video Editor", example: "Reels and YouTube", tone: "bg-[#ff6b6b]" },
+  { id: "Writing", label: "Writer", example: "Blog and copy", tone: "bg-[#ffd93d]" },
+  { id: "Consulting", label: "Consultant", example: "Growth strategy", tone: "bg-[#c4b5fd]" },
 ];
+
+const paymentModels: Array<ContractInput["payment_model"]> = ["Fixed", "Hourly"];
 
 type ContractWizardProps = {
   /** Called after a contract is successfully sent so the parent can add it to the list */
@@ -134,12 +143,7 @@ type ContractWizardProps = {
 
 export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
   const [step, setStep] = useState<Step>("input");
-  const [formData, setFormData] = useState<ContractInput>({
-    payment_model: "Fixed",
-    effective_date: new Date().toISOString().split("T")[0],
-  });
-  const [errors, setErrors] = useState<Record<string, boolean>>({});
-  const [selectedTemplate, setSelectedTemplate] = useState<"Free" | "Premium" | "Modern Corporate">("Free");
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>("Free");
   const [result, setResult] = useState<ContractResult | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [sentData, setSentData] = useState<SentData | null>(null);
@@ -147,63 +151,74 @@ export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
   const [isPreparingDocument, setIsPreparingDocument] = useState(false);
   const [documentPrepError, setDocumentPrepError] = useState("");
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const [formData, setFormData] = useState<ContractInput>({
+    payment_model: "Fixed",
+    effective_date: new Date().toISOString().split("T")[0],
+  });
+
+  const [errors, setErrors] = useState<Record<string, boolean>>({});
+  const [showValidationHint, setShowValidationHint] = useState(false);
+
+  function onChange(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (value.trim()) {
       setErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors[name];
-        return newErrors;
+        const copy = { ...prev };
+        delete copy[name];
+        return copy;
       });
     }
-  };
+  }
 
-  const validateStep1 = () => {
-    const requiredFields = [
-      "client_name", "client_location", 
-      "freelancer_name", "freelancer_location", 
-      "jurisdiction", "scope_of_work", 
+  function validateInputStep() {
+    const required = [
+      "client_name",
+      "client_location",
+      "freelancer_name",
+      "freelancer_location",
+      "jurisdiction",
+      "scope_of_work",
       formData.payment_model === "Fixed" ? "budget" : "hourly_rate",
-      "timeline"
+      "timeline",
     ];
-    
-    const newErrors: Record<string, boolean> = {};
-    let isValid = true;
+
+    const nextErrors: Record<string, boolean> = {};
 
     if (!formData.freelancer_type) {
-      newErrors["freelancer_type"] = true;
-      isValid = false;
+      nextErrors.freelancer_type = true;
     }
 
-    requiredFields.forEach(field => {
-      if (!formData[field as keyof ContractInput]) {
-        newErrors[field] = true;
-        isValid = false;
+    for (const key of required) {
+      const value = formData[key as keyof ContractInput];
+      if (!value || String(value).trim().length === 0) {
+        nextErrors[key] = true;
       }
-    });
-
-    setErrors(newErrors);
-    return isValid;
-  };
-
-  const goToTemplateStep = () => {
-    if (validateStep1()) {
-      setStep("template");
     }
-  };
 
-  const startGeneration = () => {
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  }
+
+  function goToTemplateStep() {
+    if (!validateInputStep()) {
+      setShowValidationHint(true);
+      return;
+    }
+    setShowValidationHint(false);
+    setStep("template");
+  }
+
+  function startGeneration() {
     setStep("generating");
     setDocumentBase64("");
     setDocumentPrepError("");
     setTimeout(() => {
-      const res = generateContract(formData);
-      // We manually override the template type in the result if needed or pass it to preview
-      setResult({ ...res, selectedTemplate }); 
+      const generated = generateContract(formData);
+      setResult({ ...generated, selectedTemplate });
       setStep("preview");
-    }, 2000); // Simulate AI crafting
-  };
+    }, 1300);
+  }
 
   // Opens the modal — the modal handles the API call
   const handleSendForSignature = () => {
@@ -257,11 +272,16 @@ export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
 
   if (step === "generating") {
     return (
-      <div className="py-20 flex flex-col items-center justify-center text-center space-y-6">
-        <div className="w-16 h-16 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin" />
-        <div className="space-y-2">
-          <h3 className="text-xl font-semibold text-slate-900">AI is crafting your agreement...</h3>
-          <p className="text-slate-500 animate-pulse">Analyzing project type and injecting protective clauses</p>
+      <div className="relative overflow-hidden border-4 border-black bg-[#ffd93d] px-8 py-20 text-center neo-shadow-lg">
+        <div aria-hidden className="pointer-events-none absolute inset-0 pattern-halftone opacity-30" />
+        <div className="relative space-y-4">
+          <div className="mx-auto inline-flex h-20 w-20 animate-spin-slow items-center justify-center border-4 border-black bg-white neo-shadow-sm">
+            <span className="font-heading text-3xl font-black">★</span>
+          </div>
+          <p className="font-heading text-4xl font-black uppercase tracking-tighter text-black sm:text-5xl">
+            Building your contract
+          </p>
+          <p className="text-lg font-bold text-black">Adding legal safeguards and payment clauses…</p>
         </div>
       </div>
     );
@@ -271,41 +291,26 @@ export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
     const documentName = `${formData.freelancer_type ?? "Freelance"} Agreement — ${formData.client_name ?? "Client"}`;
     return (
       <>
-        <div className="space-y-6">
-          <div className="flex items-center justify-between gap-4 py-2 border-b border-slate-100 mb-6 print:hidden">
-            <button
-              onClick={() => setStep("template")}
-              className="text-sm font-medium text-slate-500 hover:text-slate-800 flex items-center gap-2"
-            >
-              ← Back to Templates
-            </button>
-            <div className="flex gap-3">
-              <button 
-                onClick={() => setStep("input")}
-                className="text-xs font-semibold px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50"
-              >
-                Edit Fields
-              </button>
-              <button 
-                onClick={startGeneration}
-                className="text-xs font-semibold px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50"
-              >
-                Regenerate
-              </button>
-            </div>
-          </div>
-          <ContractPreview 
-            result={result} 
-            templateType={selectedTemplate}
-            onSend={handleSendForSignature}
-          />
+        <ContractCanvas
+          result={result}
+          templateType={selectedTemplate}
+          onBack={() => setStep("template")}
+          onGenerateAnother={() => setStep("input")}
+          onSend={handleSendForSignature}
+        />
 
-          {sentData && (
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-              Sent <span className="font-semibold">{sentData.documentName}</span> to <span className="font-semibold">{sentData.clientName}</span>. Status is now <span className="font-semibold">Sent</span> in Your contracts.
-            </div>
-          )}
-        </div>
+        {sentData && (
+          <div className="mt-6 border-4 border-black bg-[#c4b5fd] px-5 py-4 neo-shadow-sm">
+            <p className="text-base font-bold text-black">
+              ✓ Sent <span className="font-heading font-black">{sentData.documentName}</span> to{" "}
+              <span className="font-heading font-black">{sentData.clientName}</span>. Status is now{" "}
+              <span className="inline-flex items-center border-[3px] border-black bg-black px-2 py-0.5 text-xs font-black uppercase tracking-widest text-[#ffd93d]">
+                Sent
+              </span>{" "}
+              in Your Contracts.
+            </p>
+          </div>
+        )}
 
         {/* Send Signature Modal */}
         {showModal && (
@@ -324,172 +329,295 @@ export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
     );
   }
 
+  const stepIdx = step === "input" ? 0 : step === "template" ? 1 : 2;
+
   return (
-    <div className="contract-workspace-container mx-auto max-w-4xl">
-      {/* Progress Pills */}
-      <div className="mb-10 flex gap-2 overflow-x-auto pb-2 print:hidden">
-        {["Intake Details", "Select Style", "Final Review"].map((t, i) => {
-          const active = (step === "input" && i === 0) || (step === "template" && i === 1) || (step === "preview" && i === 2);
-          const completed = (step === "template" && i === 0) || (step === "preview" && i <= 1);
+    <div className="mx-auto max-w-5xl space-y-8">
+      {/* Step tracker */}
+      <div className="flex flex-wrap items-center gap-3">
+        {["Intake", "Style", "Preview"].map((label, i) => {
+          const isDone = i < stepIdx;
+          const isActive = i === stepIdx;
           return (
-            <div key={t} className="flex-1 min-w-30 flex items-center gap-3">
-              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${active ? "bg-indigo-600 text-white" : completed ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-400"}`}>
-                {completed ? "✓" : i + 1}
-              </div>
-              <span className={`text-[11px] font-bold uppercase tracking-widest ${active ? "text-slate-950" : "text-slate-400"}`}>{t}</span>
+            <div key={label} className="flex items-center gap-3">
+              <span
+                className={`inline-flex items-center gap-2 border-[3px] border-black px-3 py-2 text-xs font-black uppercase tracking-widest ${
+                  isActive
+                    ? "bg-[#ff6b6b] text-black neo-shadow-sm"
+                    : isDone
+                      ? "bg-black text-[#ffd93d]"
+                      : "bg-white text-black/60"
+                }`}
+              >
+                <span className="font-heading">{String(i + 1).padStart(2, "0")}</span>
+                {label}
+              </span>
+              {i < 2 ? <span aria-hidden className="h-[3px] w-6 bg-black" /> : null}
+
             </div>
           );
         })}
       </div>
 
       {step === "input" ? (
-        <div className="space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-300">
-          {/* Section: Freelancer Type Selection */}
-          <section className="space-y-6">
-            <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400">01. Select Freelancer Type</h3>
-            {errors.freelancer_type && <p className="text-xs text-red-500 font-bold">Please select a freelancer type</p>}
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-              {freelancerTypes.map((type) => (
-                <button
-                  key={type.id}
-                  onClick={() => {
-                    setFormData(prev => ({ ...prev, freelancer_type: type.id }));
-                    setErrors(prev => {
-                      const newErrors = { ...prev };
-                      delete newErrors.freelancer_type;
-                      return newErrors;
-                    });
-                  }}
-                  className={`flex flex-col items-start p-4 rounded-2xl border transition-all text-left ${formData.freelancer_type === type.id ? "bg-indigo-50/50 border-indigo-600 ring-1 ring-indigo-600" : errors.freelancer_type ? "border-red-300 bg-red-50/30" : "bg-white border-slate-200 hover:border-slate-300"}`}
-                >
-                  <span className="text-2xl mb-2">{type.icon}</span>
-                  <span className="text-sm font-bold text-slate-950">{type.label}</span>
-                  <span className="text-[10px] text-slate-500 mt-1">Example: {type.example}</span>
-                </button>
+        <div className="space-y-8">
+          {showValidationHint ? (
+            <div className="flex items-start gap-3 border-4 border-black bg-[#ff6b6b] px-5 py-4 neo-shadow-sm">
+              <span className="text-2xl">⚠</span>
+              <p className="text-base font-bold text-black">
+                Fill the required fields first, then click Continue to style selection.
+              </p>
+            </div>
+          ) : null}
+
+          {/* Freelancer type */}
+          <section className="border-4 border-black bg-white neo-shadow-md">
+            <header className="border-b-4 border-black bg-[#c4b5fd] px-5 py-4">
+              <div className="flex items-center gap-3">
+                <span className="inline-flex h-8 w-8 items-center justify-center border-[3px] border-black bg-white font-heading text-xs font-black">01</span>
+                <h3 className="font-heading text-2xl font-black uppercase tracking-tight">Service Type</h3>
+              </div>
+              {errors.freelancer_type ? (
+                <p className="mt-2 text-sm font-bold text-black">⚠ Select a service type to tailor clauses.</p>
+              ) : null}
+            </header>
+            <div className="grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-3">
+              {freelancerTypes.map((type, idx) => {
+                const selected = formData.freelancer_type === type.id;
+                const tilt = idx % 2 ? "-rotate-1" : "rotate-1";
+                return (
+                  <button
+                    key={type.id}
+                    type="button"
+                    onClick={() => {
+                      setFormData((prev) => ({ ...prev, freelancer_type: type.id }));
+                      setErrors((prev) => {
+                        const copy = { ...prev };
+                        delete copy.freelancer_type;
+                        return copy;
+                      });
+                    }}
+                    aria-pressed={selected}
+                    className={`group relative border-4 border-black p-4 text-left neo-shadow-sm transition-all duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:rotate-0 hover:shadow-[6px_6px_0_0_#000] ${tilt} ${
+                      selected
+                        ? `${type.tone} !rotate-0 !translate-x-0 !translate-y-0 shadow-[6px_6px_0_0_#000]`
+                        : "bg-white"
+                    }`}
+                  >
+                    <p className="font-heading text-xl font-black uppercase tracking-tight text-black">{type.label}</p>
+                    <p className="mt-1 text-sm font-bold text-black/80">e.g. {type.example}</p>
+                    {selected ? (
+                      <span className="mt-3 inline-flex items-center gap-1 border-[3px] border-black bg-black px-2 py-1 text-[10px] font-black uppercase tracking-widest text-[#ffd93d]">
+                        ✓ Selected
+                      </span>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* Parties */}
+          <section className="border-4 border-black bg-white neo-shadow-md">
+            <header className="border-b-4 border-black bg-[#ffd93d] px-5 py-4">
+              <div className="flex items-center gap-3">
+                <span className="inline-flex h-8 w-8 items-center justify-center border-[3px] border-black bg-white font-heading text-xs font-black">02</span>
+                <h3 className="font-heading text-2xl font-black uppercase tracking-tight">The Parties</h3>
+              </div>
+            </header>
+            <div className="grid gap-5 p-5 md:grid-cols-2">
+              {[
+                { name: "client_name", label: "Client name", placeholder: "Acme Corp" },
+                { name: "client_location", label: "Client location", placeholder: "San Francisco, CA" },
+                { name: "freelancer_name", label: "Your name", placeholder: "Alex Morgan" },
+                { name: "freelancer_location", label: "Your location", placeholder: "Brooklyn, NY" },
+              ].map((field) => (
+                <label key={field.name} className="block space-y-2">
+                  <span className="font-heading text-xs font-black uppercase tracking-[0.2em] text-black">
+                    {field.label}
+                    {errors[field.name] ? <span className="ml-2 text-[#ff6b6b]">*</span> : null}
+                  </span>
+                  <input
+                    name={field.name}
+                    placeholder={field.placeholder}
+                    value={(formData[field.name as keyof ContractInput] as string) || ""}
+                    onChange={onChange}
+                    className="neo-input"
+                  />
+                </label>
               ))}
             </div>
           </section>
 
-          {/* Section: The Parties */}
-          <section className="space-y-6">
-            <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400">02. The Parties</h3>
-            <div className="grid md:grid-cols-2 gap-8 bg-slate-50/50 p-6 rounded-4xl border border-slate-100">
-              <div className="space-y-4">
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Client (Paying Party)</p>
-                <input name="client_name" value={formData.client_name || ""} placeholder="Full Name or Company" className={`w-full bg-white border rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500/20 ${errors.client_name ? "border-red-300 ring-1 ring-red-300" : "border-slate-200"}`} onChange={handleInputChange} />
-                <input name="client_location" value={formData.client_location || ""} placeholder="Address/City/State" className={`w-full bg-white border rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500/20 ${errors.client_location ? "border-red-300 ring-1 ring-red-300" : "border-slate-200"}`} onChange={handleInputChange} />
+          {/* Scope & payment */}
+          <section className="border-4 border-black bg-white neo-shadow-md">
+            <header className="border-b-4 border-black bg-[#ff6b6b] px-5 py-4">
+              <div className="flex items-center gap-3">
+                <span className="inline-flex h-8 w-8 items-center justify-center border-[3px] border-black bg-white font-heading text-xs font-black">03</span>
+                <h3 className="font-heading text-2xl font-black uppercase tracking-tight">Scope & Payment</h3>
               </div>
-              <div className="space-y-4">
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Contractor (Freelancer)</p>
-                <input name="freelancer_name" value={formData.freelancer_name || ""} placeholder="Full Legal Name" className={`w-full bg-white border rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500/20 ${errors.freelancer_name ? "border-red-300 ring-1 ring-red-300" : "border-slate-200"}`} onChange={handleInputChange} />
-                <input name="freelancer_location" value={formData.freelancer_location || ""} placeholder="Address/City/State" className={`w-full bg-white border rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500/20 ${errors.freelancer_location ? "border-red-300 ring-1 ring-red-300" : "border-slate-200"}`} onChange={handleInputChange} />
+            </header>
+            <div className="space-y-5 p-5">
+              <label className="block space-y-2">
+                <span className="font-heading text-xs font-black uppercase tracking-[0.2em] text-black">
+                  Scope of work
+                  {errors.scope_of_work ? <span className="ml-2 text-[#ff6b6b]">*</span> : null}
+                </span>
+                <textarea
+                  name="scope_of_work"
+                  value={formData.scope_of_work || ""}
+                  onChange={onChange}
+                  rows={4}
+                  placeholder="Design and build a 5-page marketing site…"
+                  className="neo-input resize-y"
+                />
+              </label>
+              <div className="grid gap-5 md:grid-cols-2">
+                <label className="block space-y-2">
+                  <span className="font-heading text-xs font-black uppercase tracking-[0.2em] text-black">
+                    Jurisdiction
+                    {errors.jurisdiction ? <span className="ml-2 text-[#ff6b6b]">*</span> : null}
+                  </span>
+                  <input
+                    name="jurisdiction"
+                    placeholder="Delaware, USA"
+                    value={formData.jurisdiction || ""}
+                    onChange={onChange}
+                    className="neo-input"
+                  />
+                </label>
+                <label className="block space-y-2">
+                  <span className="font-heading text-xs font-black uppercase tracking-[0.2em] text-black">
+                    Timeline
+                    {errors.timeline ? <span className="ml-2 text-[#ff6b6b]">*</span> : null}
+                  </span>
+                  <input
+                    name="timeline"
+                    placeholder="6 weeks"
+                    value={formData.timeline || ""}
+                    onChange={onChange}
+                    className="neo-input"
+                  />
+                </label>
               </div>
-            </div>
-          </section>
-
-          {/* Section: Project & Legal */}
-          <section className="space-y-6">
-            <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400">03. Project & Legal</h3>
-            <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-700 ml-1">Jurisdiction (Governing Law State)</label>
-                <input name="jurisdiction" value={formData.jurisdiction || ""} placeholder="e.g. California" className={`w-full bg-white border rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500/20 ${errors.jurisdiction ? "border-red-300 ring-1 ring-red-300" : "border-slate-200"}`} onChange={handleInputChange} />
+                <span className="font-heading text-xs font-black uppercase tracking-[0.2em] text-black">
+                  Payment model
+                </span>
+                <div className="flex flex-wrap gap-3">
+                  {paymentModels.map((model) => (
+                    <button
+                      type="button"
+                      key={model}
+                      onClick={() => setFormData((prev) => ({ ...prev, payment_model: model }))}
+                      className={`neo-btn text-xs ${
+                        formData.payment_model === model ? "neo-btn-dark" : ""
+                      }`}
+                    >
+                      {model} Fee
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-700 ml-1">Effective Date</label>
-                <input type="date" name="effective_date" value={formData.effective_date} className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500/20" onChange={handleInputChange} />
-              </div>
-              <div className="md:col-span-2 space-y-2">
-                <label className="text-xs font-bold text-slate-700 ml-1">Scope of Work</label>
-                <textarea name="scope_of_work" value={formData.scope_of_work || ""} rows={3} placeholder="Provide specific service details..." className={`w-full bg-white border rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500/20 ${errors.scope_of_work ? "border-red-300 ring-1 ring-red-300" : "border-slate-200"}`} onChange={handleInputChange} />
-              </div>
+              {formData.payment_model === "Fixed" ? (
+                <label className="block space-y-2">
+                  <span className="font-heading text-xs font-black uppercase tracking-[0.2em] text-black">
+                    Total budget
+                    {errors.budget ? <span className="ml-2 text-[#ff6b6b]">*</span> : null}
+                  </span>
+                  <input
+                    name="budget"
+                    placeholder="$12,000"
+                    value={formData.budget || ""}
+                    onChange={onChange}
+                    className="neo-input"
+                  />
+                </label>
+              ) : (
+                <label className="block space-y-2">
+                  <span className="font-heading text-xs font-black uppercase tracking-[0.2em] text-black">
+                    Hourly rate
+                    {errors.hourly_rate ? <span className="ml-2 text-[#ff6b6b]">*</span> : null}
+                  </span>
+                  <input
+                    name="hourly_rate"
+                    placeholder="$120/hr"
+                    value={formData.hourly_rate || ""}
+                    onChange={onChange}
+                    className="neo-input"
+                  />
+                </label>
+              )}
             </div>
           </section>
 
-          {/* Section: Compensation */}
-          <section className="space-y-6">
-            <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400">04. Compensation</h3>
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6">
-              <div className="flex gap-4 p-1 bg-slate-100 rounded-xl w-fit">
-                {(["Fixed", "Hourly"] as const).map((m) => (
-                  <button key={m} onClick={() => setFormData((p) => ({ ...p, payment_model: m }))} className={`px-6 py-2 rounded-lg text-xs font-bold transition-all ${formData.payment_model === m ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500"}`}>{m} Fee</button>
-                ))}
-              </div>
-              <div className="grid md:grid-cols-2 gap-6">
-                {formData.payment_model === "Fixed" ? (
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-700 ml-1">Total Budget</label>
-                    <input name="budget" value={formData.budget || ""} placeholder="e.g. $2,500 USD" className={`w-full border rounded-xl p-3 text-sm bg-slate-50/30 focus:ring-2 focus:ring-indigo-500/20 ${errors.budget ? "border-red-300 ring-1 ring-red-300" : "border-slate-200"}`} onChange={handleInputChange} />
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-700 ml-1">Hourly Rate</label>
-                    <input name="hourly_rate" value={formData.hourly_rate || ""} placeholder="e.g. $75/hr" className={`w-full border rounded-xl p-3 text-sm bg-slate-50/30 focus:ring-2 focus:ring-indigo-500/20 ${errors.hourly_rate ? "border-red-300 ring-1 ring-red-300" : "border-slate-200"}`} onChange={handleInputChange} />
-                  </div>
-                )}
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-700 ml-1">Invoicing & Timeline</label>
-                  <input name="timeline" value={formData.timeline || ""} placeholder="e.g. 1 month duration" className={`w-full border rounded-xl p-3 text-sm bg-slate-50/30 focus:ring-2 focus:ring-indigo-500/20 ${errors.timeline ? "border-red-300 ring-1 ring-red-300" : "border-slate-200"}`} onChange={handleInputChange} />
-                </div>
-                <div className="md:col-span-2 space-y-2">
-                  <label className="text-xs font-bold text-slate-700 ml-1">Specific Payment Milestones (Optional)</label>
-                  <input name="payment_terms" value={formData.payment_terms || ""} placeholder="e.g. 50% upfront, 50% on final delivery" className="w-full border-slate-200 rounded-xl p-3 text-sm bg-slate-50/30" onChange={handleInputChange} />
-                </div>
-              </div>
-            </div>
-          </section>
+          <button
+            type="button"
+            onClick={goToTemplateStep}
+            className="neo-btn neo-btn-primary w-full py-5 text-base"
+          >
+            Continue to Style Selection →
 
-          <button onClick={goToTemplateStep} className="flex w-full items-center justify-center gap-2 border-4 border-black bg-black p-5 text-sm font-black uppercase tracking-[0.24em] text-white transition hover:bg-swiss-accent hover:text-black active:scale-[0.99]">
-            Continue to Template Selection →
           </button>
         </div>
-      ) : step === "template" ? (
-        <div className="space-y-8 animate-in fade-in zoom-in-95 duration-300">
-          <div className="space-y-2 px-4 pb-4 text-center">
-            <h2 className="text-2xl font-black uppercase tracking-tight text-black">Select Contract Interface</h2>
-            <p className="text-black/70">How would you like the legal document to be formatted visually?</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            <div 
-              onClick={() => setSelectedTemplate("Free")}
-              className={`flex cursor-pointer flex-col items-center space-y-4 border-4 p-6 text-center transition-all ${selectedTemplate === "Free" ? "border-black bg-swiss-muted" : "border-black bg-white hover:bg-swiss-muted"}`}
-            >
-              <div className="flex h-12 w-12 items-center justify-center border-2 border-black bg-white text-black">1</div>
-              <div>
-                <h4 className="text-lg font-black uppercase tracking-tight text-black">Free Version</h4>
-                <p className="mt-2 text-xs leading-relaxed text-black/70">Simple monospace formatting. Standard legal layout.</p>
-              </div>
-            </div>
-            
-            <div 
-              onClick={() => setSelectedTemplate("Premium")}
-              className={`relative flex cursor-pointer flex-col items-center space-y-4 overflow-hidden border-4 p-6 text-center transition-all ${selectedTemplate === "Premium" ? "border-black bg-swiss-muted" : "border-black bg-white hover:bg-swiss-muted"}`}
-            >
-              <div className="absolute right-4 top-4 border-2 border-black bg-swiss-accent px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.24em] text-black">Recommended</div>
-              <div className="flex h-12 w-12 items-center justify-center border-2 border-black bg-black text-white">2</div>
-              <div>
-                <h4 className="text-lg font-black uppercase tracking-tight text-black">Premium AI Style</h4>
-                <p className="mt-2 text-xs leading-relaxed text-black/70">High-fidelity typography, professional structure, and immutable ID.</p>
-              </div>
-            </div>
+      ) : null}
 
-            <div 
-              onClick={() => setSelectedTemplate("Modern Corporate")}
-              className={`flex cursor-pointer flex-col items-center space-y-4 border-4 p-6 text-center transition-all ${selectedTemplate === "Modern Corporate" ? "border-black bg-swiss-muted" : "border-black bg-white hover:bg-swiss-muted"}`}
-            >
-              <div className="flex h-12 w-12 items-center justify-center border-2 border-black bg-white text-black">3</div>
-              <div>
-                <h4 className="text-lg font-black uppercase tracking-tight text-black">Modern Corporate</h4>
-                <p className="mt-2 text-xs leading-relaxed text-black/70">Executive sans-serif design. Strong headers and structured sections.</p>
-              </div>
-            </div>
+      {step === "template" ? (
+        <div className="space-y-8">
+          <div className="text-center">
+            <span className="neo-tag neo-tag-yellow">Step 02</span>
+            <p className="font-heading mt-4 text-4xl font-black uppercase tracking-tighter text-black sm:text-5xl">
+              Choose Your Style
+            </p>
+            <p className="mx-auto mt-3 max-w-xl text-lg font-bold text-black">
+              Same legal engine. Different visual tone.
+            </p>
           </div>
-          
-          <div className="flex flex-col items-center gap-4">
-            <button onClick={startGeneration} className="w-full max-w-sm border-4 border-black bg-black px-10 py-5 text-sm font-black uppercase tracking-[0.24em] text-white transition hover:bg-swiss-accent hover:text-black">
-              Use Template
+
+          <div className="grid gap-6 md:grid-cols-3">
+            {([
+              { id: "Free", title: "Free", note: "Simple. Honest. Direct.", tone: "bg-[#ffd93d]" },
+              { id: "Premium", title: "Premium", note: "Polished client-facing layout.", tone: "bg-[#ff6b6b]" },
+              { id: "Modern Corporate", title: "Corporate", note: "Formal enterprise structure.", tone: "bg-[#c4b5fd]" },
+            ] as const).map((option, idx) => {
+              const selected = selectedTemplate === option.id;
+              const tilt = idx === 0 ? "-rotate-2" : idx === 1 ? "rotate-0" : "rotate-2";
+              return (
+                <button
+                  type="button"
+                  key={option.id}
+                  onClick={() => setSelectedTemplate(option.id)}
+                  aria-pressed={selected}
+                  className={`relative border-4 border-black p-6 text-left neo-shadow-md transition-all duration-200 hover:-translate-y-1 hover:rotate-0 hover:shadow-[12px_12px_0_0_#000] ${tilt} ${
+                    selected
+                      ? `${option.tone} !rotate-0 !translate-y-0 shadow-[12px_12px_0_0_#000]`
+                      : "bg-white"
+                  }`}
+                >
+                  <span className="font-heading text-xs font-black uppercase tracking-[0.25em] text-black">
+                    Template {String(idx + 1).padStart(2, "0")}
+                  </span>
+                  <p className="font-heading mt-3 text-4xl font-black uppercase tracking-tighter text-black">
+                    {option.title}
+                  </p>
+                  <p className="mt-3 border-t-[3px] border-black pt-3 text-sm font-bold text-black">
+                    {option.note}
+                  </p>
+                  {selected ? (
+                    <span className="absolute -right-3 -top-3 inline-flex h-10 w-10 rotate-12 items-center justify-center border-4 border-black bg-black font-heading text-lg font-black text-[#ffd93d]">
+                      ✓
+                    </span>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex flex-wrap justify-center gap-4">
+            <button type="button" onClick={startGeneration} className="neo-btn neo-btn-primary px-10 py-4 text-base">
+              Create Contract →
             </button>
-            <button onClick={() => setStep("input")} className="text-sm font-black uppercase tracking-[0.24em] text-black/60 hover:text-black">
+            <button type="button" onClick={() => setStep("input")} className="neo-btn px-10 py-4 text-base">
               ← Back to Details
             </button>
           </div>

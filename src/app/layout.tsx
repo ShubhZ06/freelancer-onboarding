@@ -1,20 +1,25 @@
 import type { Metadata } from "next";
-import { Inter, Inter_Tight } from "next/font/google";
+import { Archivo_Black, Space_Grotesk } from "next/font/google";
+import { ConditionalHeader } from "@/components/navigation/ConditionalHeader";
 import "./globals.css";
 
-const interSans = Inter({
-  variable: "--font-geist-sans",
+const headingFont = Archivo_Black({
+  variable: "--font-heading",
   subsets: ["latin"],
+  weight: ["400"],
+  display: "swap",
 });
 
-const interMono = Inter_Tight({
-  variable: "--font-geist-mono",
+const bodyFont = Space_Grotesk({
+  variable: "--font-body",
   subsets: ["latin"],
+  weight: ["500", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Freelancer Operating System | Swiss Interface",
-  description: "A modular freelancer workspace with a Swiss typographic system and clearer operational UX.",
+  title: "Freelancer OS — Run Client Work Without The Chaos",
+  description: "The punk operating system for independent professionals. Leads, contracts, signatures, updates, expenses — all in one loud place.",
 };
 
 export default function RootLayout({
@@ -26,9 +31,11 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${interSans.variable} ${interMono.variable} h-full antialiased`}
+      data-scroll-behavior="smooth"
+      className={`${headingFont.variable} ${bodyFont.variable} h-full antialiased`}
     >
       <body suppressHydrationWarning className="min-h-full flex flex-col bg-background text-foreground">
+        <ConditionalHeader />
         {children}
       </body>
     </html>

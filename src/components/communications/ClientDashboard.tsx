@@ -262,9 +262,6 @@ export function ClientDashboard({ whatsappDeliveryE164 }: ClientDashboardProps) 
 
       <div className="border-4 border-black bg-white p-6 swiss-grid-pattern">
         <h2 className="text-2xl font-black uppercase tracking-tight text-black">Add Client</h2>
-        <p className="mt-2 max-w-4xl text-sm leading-6 text-black/70">
-          WhatsApp deliveries always go to <span className="font-black text-black">{whatsappDeliveryE164}</span>. Add a name and a reference mobile for this workspace (message content still uses the selected client name).
-        </p>
         <div className="mt-5 grid gap-3 lg:grid-cols-[1fr_1fr_auto] lg:items-end">
           <div className="flex flex-1 flex-col gap-1">
             <label className="text-xs font-black uppercase tracking-[0.24em] text-black/60">Name</label>
