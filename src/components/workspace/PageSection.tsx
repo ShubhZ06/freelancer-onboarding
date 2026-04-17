@@ -10,13 +10,16 @@ export function PageSection({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-[1.75rem] border border-slate-200/80 bg-white/85 p-6 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+    <section className="border-4 border-black bg-white p-5 sm:p-6 lg:p-8">
+      <div className="flex flex-col gap-3 border-b-2 border-black pb-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight text-slate-950">
+          <p className="text-xs font-black uppercase tracking-[0.3em] text-swiss-accent">
+            Section
+          </p>
+          <h2 className="mt-2 text-2xl font-black uppercase tracking-tighter text-black sm:text-3xl">
             {title}
           </h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-black/70">
             {description}
           </p>
         </div>

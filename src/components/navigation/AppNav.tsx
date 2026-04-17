@@ -17,7 +17,7 @@ export function AppNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex flex-wrap items-center gap-2">
+    <nav className="flex max-w-full gap-2 overflow-x-auto pb-1 lg:flex-wrap lg:justify-end">
       {navigationItems.map((item) => {
         const isActive =
           item.href === "/" ? pathname === item.href : pathname.startsWith(item.href);
@@ -26,10 +26,10 @@ export function AppNav() {
           <Link
             key={item.href}
             href={item.href}
-            className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+            className={`border-2 border-black px-4 py-2 text-xs font-black uppercase tracking-[0.24em] transition duration-150 ${
               isActive
-                ? "bg-slate-950 text-white"
-                : "bg-white/80 text-slate-600 hover:bg-white hover:text-slate-950"
+                ? "bg-black text-white"
+                : "bg-white text-black hover:bg-swiss-muted hover:text-black"
             }`}
           >
             {item.label}

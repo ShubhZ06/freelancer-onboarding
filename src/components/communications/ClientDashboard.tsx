@@ -247,53 +247,53 @@ export function ClientDashboard({ whatsappDeliveryE164 }: ClientDashboardProps) 
   }
 
   const statusColor: Record<string, string> = {
-    "In Progress": "bg-emerald-100 text-emerald-700",
-    "Pending Review": "bg-amber-100 text-amber-700",
-    "Paused": "bg-rose-100 text-rose-700",
+    "In Progress": "bg-black text-white",
+    "Pending Review": "bg-swiss-accent text-black",
+    "Paused": "bg-white text-black",
   };
 
   return (
     <div className="flex flex-col gap-6">
       {toast && (
-        <div className={`fixed bottom-6 right-6 z-50 max-w-sm rounded-2xl px-5 py-4 text-sm font-medium shadow-xl ${toast.kind === "success" ? "bg-emerald-600 text-white" : "bg-rose-600 text-white"}`}>
+        <div className={`fixed bottom-6 right-6 z-50 max-w-sm border-2 border-black px-5 py-4 text-sm font-black uppercase tracking-[0.22em] ${toast.kind === "success" ? "bg-black text-white" : "bg-swiss-accent text-black"}`}>
           {toast.text}
         </div>
       )}
 
-      <div className="rounded-[1.75rem] border border-slate-200/80 bg-white/85 p-6 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
-        <h2 className="text-2xl font-semibold tracking-tight text-slate-950">Add Client</h2>
-        <p className="mt-1 text-sm text-slate-500">
-          WhatsApp deliveries always go to <span className="font-semibold text-slate-700">{whatsappDeliveryE164}</span>. Add a name and a reference mobile for this workspace (message content still uses the selected client name).
+      <div className="border-4 border-black bg-white p-6 swiss-grid-pattern">
+        <h2 className="text-2xl font-black uppercase tracking-tight text-black">Add Client</h2>
+        <p className="mt-2 max-w-4xl text-sm leading-6 text-black/70">
+          WhatsApp deliveries always go to <span className="font-black text-black">{whatsappDeliveryE164}</span>. Add a name and a reference mobile for this workspace (message content still uses the selected client name).
         </p>
-        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-end">
+        <div className="mt-5 grid gap-3 lg:grid-cols-[1fr_1fr_auto] lg:items-end">
           <div className="flex flex-1 flex-col gap-1">
-            <label className="text-xs font-semibold uppercase tracking-widest text-slate-400">Name</label>
+            <label className="text-xs font-black uppercase tracking-[0.24em] text-black/60">Name</label>
             <input
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAddClient()}
               placeholder="e.g. Aryan Yadav"
-              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200"
+              className="border-2 border-black bg-white px-4 py-3 text-sm text-black placeholder:text-black/30 focus:border-swiss-accent focus:outline-none"
             />
           </div>
           <div className="flex flex-1 flex-col gap-1">
-            <label className="text-xs font-semibold uppercase tracking-widest text-slate-400">Reference mobile</label>
+            <label className="text-xs font-black uppercase tracking-[0.24em] text-black/60">Reference mobile</label>
             <div className="flex">
-              <span className="flex items-center rounded-l-2xl border border-r-0 border-slate-200 bg-slate-100 px-4 text-sm text-slate-500 select-none">+</span>
+              <span className="flex items-center border-2 border-r-0 border-black bg-swiss-muted px-4 text-sm text-black select-none">+</span>
               <input
                 type="tel"
                 value={newPhone}
                 onChange={(e) => setNewPhone(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleAddClient()}
                 placeholder="919876543210"
-                className="flex-1 rounded-r-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200"
+                className="flex-1 border-2 border-black bg-white px-4 py-3 text-sm text-black placeholder:text-black/30 focus:border-swiss-accent focus:outline-none"
               />
             </div>
           </div>
           <button
             onClick={handleAddClient}
             disabled={addingClient}
-            className="rounded-2xl bg-slate-950 px-6 py-3 text-sm font-semibold text-white hover:bg-slate-800 active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="border-2 border-black bg-black px-6 py-3 text-sm font-black uppercase tracking-[0.22em] text-white transition hover:bg-swiss-accent hover:text-black disabled:cursor-not-allowed disabled:opacity-50"
           >
             {addingClient ? "Adding…" : "Add Client"}
           </button>
@@ -301,29 +301,29 @@ export function ClientDashboard({ whatsappDeliveryE164 }: ClientDashboardProps) 
       </div>
 
       {clientList.length > 0 && (
-        <div className="rounded-[1.75rem] border border-slate-200/80 bg-white/85 p-6 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
-          <h2 className="text-2xl font-semibold tracking-tight text-slate-950">Select Client</h2>
-          <p className="mt-1 text-sm text-slate-500">Choose who you are reporting to.</p>
+        <div className="border-4 border-black bg-white p-6">
+          <h2 className="text-2xl font-black uppercase tracking-tight text-black">Select Client</h2>
+          <p className="mt-2 text-sm leading-6 text-black/70">Choose who you are reporting to.</p>
           <div className="mt-4 flex flex-wrap gap-3">
             {clientList.map((c) => (
               <div key={c.id} className="flex items-center gap-1">
                 <button
                   onClick={() => { setSelectedId(c.id); setPreview(null); setAudioUrl(null); }}
-                  className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition ${
+                  className={`flex items-center gap-2 border-2 px-4 py-2 text-sm font-black uppercase tracking-[0.2em] transition ${
                     c.id === selectedId
-                      ? "border-slate-950 bg-slate-950 text-white"
-                      : "border-slate-200 bg-white text-slate-700 hover:border-slate-400"
+                      ? "border-black bg-black text-white"
+                      : "border-black bg-white text-black hover:bg-swiss-muted"
                   }`}
                 >
                   {c.name}
-                  <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${c.id === selectedId ? "bg-white/20 text-white" : (statusColor[c.status] ?? "bg-slate-100 text-slate-600")}`}>
+                  <span className={`px-2 py-0.5 text-[10px] font-black tracking-[0.2em] ${c.id === selectedId ? "bg-white text-black" : (statusColor[c.status] ?? "bg-swiss-muted text-black")}`}>
                     {c.status}
                   </span>
                 </button>
                 <button
                   onClick={() => handleDeleteClient(c.id)}
                   title="Remove client"
-                  className="rounded-full border border-slate-200 bg-white p-1.5 text-slate-400 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-500 transition"
+                  className="border-2 border-black bg-white p-1.5 text-black transition hover:bg-swiss-accent"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -338,21 +338,21 @@ export function ClientDashboard({ whatsappDeliveryE164 }: ClientDashboardProps) 
       {selectedClient && (
         <div className="grid gap-4 sm:grid-cols-4">
           <Stat label="Status">
-            <span className={`rounded-full px-3 py-1 text-sm font-semibold ${statusColor[selectedClient.status] ?? "bg-slate-100 text-slate-600"}`}>
+            <span className={`px-3 py-1 text-sm font-black uppercase tracking-[0.2em] ${statusColor[selectedClient.status] ?? "bg-swiss-muted text-black"}`}>
               {selectedClient.status}
             </span>
           </Stat>
           <Stat label="WhatsApp to">
-            <span className="text-sm font-medium text-slate-800">{whatsappDeliveryE164}</span>
-            <p className="mt-1 text-xs text-slate-400">Ref. {selectedClient.phone}</p>
+            <span className="text-sm font-medium text-black">{whatsappDeliveryE164}</span>
+            <p className="mt-1 text-xs text-black/50">Ref. {selectedClient.phone}</p>
           </Stat>
           <Stat label="Last Update">
-            <span className="text-sm font-medium text-slate-800">
+            <span className="text-sm font-medium text-black">
               {selectedClient.last_update_sent_at ? new Date(selectedClient.last_update_sent_at).toLocaleString() : "Never"}
             </span>
           </Stat>
           <Stat label="Warning Level">
-            <span className={`text-2xl font-semibold ${selectedClient.warning_level > 0 ? "text-rose-600" : "text-slate-950"}`}>
+            <span className={`text-2xl font-black ${selectedClient.warning_level > 0 ? "text-swiss-accent" : "text-black"}`}>
               {selectedClient.warning_level}
             </span>
           </Stat>
@@ -360,16 +360,16 @@ export function ClientDashboard({ whatsappDeliveryE164 }: ClientDashboardProps) 
       )}
 
       {selectedClient && (
-        <div className="rounded-[1.75rem] border border-slate-200/80 bg-white/85 p-6 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
-          <h2 className="text-2xl font-semibold tracking-tight text-slate-950">Send Progress Update</h2>
-          <p className="mt-1 text-sm text-slate-500">Write a summary and list completed tasks.</p>
+        <div className="border-4 border-black bg-white p-6">
+          <h2 className="text-2xl font-black uppercase tracking-tight text-black">Send Progress Update</h2>
+          <p className="mt-2 text-sm leading-6 text-black/70">Write a summary and list completed tasks.</p>
           <div className="mt-5 flex flex-col gap-4">
             <textarea
               value={summary}
               onChange={(e) => setSummary(e.target.value)}
               placeholder="e.g. Homepage is live, CMS connected. Awaiting your content sign-off."
               rows={4}
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200"
+              className="w-full border-2 border-black bg-swiss-muted px-4 py-3 text-sm text-black placeholder:text-black/30 focus:border-swiss-accent focus:outline-none"
             />
             <div className="flex gap-2">
               <input
@@ -377,16 +377,16 @@ export function ClientDashboard({ whatsappDeliveryE164 }: ClientDashboardProps) 
                 onChange={(e) => setTaskInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && addTask()}
                 placeholder="Add a completed task — press Enter or +"
-                className="flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200"
+                className="flex-1 border-2 border-black bg-swiss-muted px-4 py-3 text-sm text-black placeholder:text-black/30 focus:border-swiss-accent focus:outline-none"
               />
-              <button onClick={addTask} className="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800 active:scale-95 transition">+</button>
+              <button onClick={addTask} className="border-2 border-black bg-black px-5 py-3 text-sm font-black text-white transition hover:bg-swiss-accent hover:text-black">+</button>
             </div>
             {tasks.length > 0 && (
               <ul className="flex flex-col gap-2">
                 {tasks.map((task, i) => (
-                  <li key={i} className="flex items-center justify-between rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-2 text-sm text-emerald-800">
+                  <li key={i} className="flex items-center justify-between border-2 border-black bg-white px-4 py-2 text-sm text-black">
                     <span>✅ {task}</span>
-                    <button onClick={() => removeTask(i)} className="ml-4 text-emerald-400 hover:text-rose-500 transition">✕</button>
+                    <button onClick={() => removeTask(i)} className="ml-4 text-black transition hover:text-swiss-accent">✕</button>
                   </li>
                 ))}
               </ul>
@@ -400,14 +400,14 @@ export function ClientDashboard({ whatsappDeliveryE164 }: ClientDashboardProps) 
           <button
             onClick={sendUpdate}
             disabled={loading !== null}
-            className="flex-1 rounded-2xl bg-slate-950 px-6 py-4 text-sm font-semibold text-white shadow-md hover:bg-slate-800 active:scale-[0.98] transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 border-2 border-black bg-black px-6 py-4 text-sm font-black uppercase tracking-[0.22em] text-white transition hover:bg-swiss-accent hover:text-black disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading === "update" ? "Sending Update…" : "Send Update"}
           </button>
           <button
             onClick={sendWarning}
             disabled={loading !== null}
-            className="flex-1 rounded-2xl border border-rose-200 bg-rose-50 px-6 py-4 text-sm font-semibold text-rose-700 shadow-md hover:bg-rose-100 active:scale-[0.98] transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 border-2 border-black bg-white px-6 py-4 text-sm font-black uppercase tracking-[0.22em] text-black transition hover:bg-swiss-accent disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading === "warning" ? "Sending Warning…" : "Send Warning"}
           </button>
@@ -415,11 +415,11 @@ export function ClientDashboard({ whatsappDeliveryE164 }: ClientDashboardProps) 
       )}
 
       {preview && (
-        <div className="rounded-[1.75rem] border border-slate-200/80 bg-white/85 p-6 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
+        <div className="border-4 border-black bg-white p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h2 className="text-lg font-semibold text-slate-950">Message Preview</h2>
-              <p className="mt-1 text-xs text-slate-400">
+              <h2 className="text-lg font-black uppercase tracking-tight text-black">Message Preview</h2>
+              <p className="mt-1 text-xs text-black/50">
                 {previewDemo
                   ? "Demo mode — set Twilio env vars (including TWILIO_WHATSAPP_TO) to send real WhatsApp."
                   : `Delivered via Twilio WhatsApp → ${whatsappDeliveryE164}. SID: ${previewSid ?? "n/a"}`}
@@ -427,24 +427,24 @@ export function ClientDashboard({ whatsappDeliveryE164 }: ClientDashboardProps) 
             </div>
             <div className="flex items-center gap-2">
               {previewDemo
-                ? <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">Demo</span>
-                : <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">Sent via WhatsApp</span>
+                ? <span className="border-2 border-black bg-swiss-accent px-3 py-1 text-xs font-black uppercase tracking-[0.2em] text-black">Demo</span>
+                : <span className="border-2 border-black bg-black px-3 py-1 text-xs font-black uppercase tracking-[0.2em] text-white">Sent via WhatsApp</span>
               }
               <button
                 onClick={generateVoice}
                 disabled={loading !== null}
-                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="border-2 border-black bg-white px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-black transition hover:bg-swiss-muted disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {loading === "voice" ? "Generating…" : "🎙 Voice Note"}
               </button>
             </div>
           </div>
-          <pre className="mt-4 whitespace-pre-wrap rounded-2xl border border-slate-100 bg-slate-50 p-4 font-mono text-sm leading-7 text-slate-700">
+          <pre className="mt-4 whitespace-pre-wrap border-2 border-black bg-swiss-muted p-4 font-mono text-sm leading-7 text-black">
             {preview}
           </pre>
           {audioUrl && (
             <div className="mt-4">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-slate-400">Voice Note</p>
+              <p className="mb-2 text-xs font-black uppercase tracking-[0.24em] text-black/50">Voice Note</p>
               <audio controls src={audioUrl} className="w-full rounded-xl" />
             </div>
           )}
@@ -452,8 +452,8 @@ export function ClientDashboard({ whatsappDeliveryE164 }: ClientDashboardProps) 
       )}
 
       {clientList.length === 0 && (
-        <div className="rounded-[1.75rem] border border-dashed border-slate-300 bg-white/50 p-10 text-center text-slate-400">
-          <p className="text-lg font-medium">No clients yet</p>
+        <div className="border-4 border-dashed border-black bg-white p-10 text-center text-black/60">
+          <p className="text-lg font-black uppercase tracking-tight text-black">No clients yet</p>
           <p className="mt-1 text-sm">Add a contact to start sending WhatsApp updates to {whatsappDeliveryE164}.</p>
         </div>
       )}
@@ -463,8 +463,8 @@ export function ClientDashboard({ whatsappDeliveryE164 }: ClientDashboardProps) 
 
 function Stat({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-[1.5rem] border border-slate-200/70 bg-white/85 p-5">
-      <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">{label}</p>
+    <div className="border-2 border-black bg-white p-5">
+      <p className="text-xs font-black uppercase tracking-[0.24em] text-black/50">{label}</p>
       <div className="mt-3">{children}</div>
     </div>
   );
