@@ -1,8 +1,17 @@
 ﻿import type { IntentPreset, Lead } from "./types";
 import { matchesIntent } from "./intent";
-import { fetchWithTimeout, matchesQuery, stripHtml, truncate } from "./utils";
+import {
+  fetchWithTimeout,
+  getCached,
+  matchesQuery,
+  setCached,
+  stripHtml,
+  truncate,
+} from "./utils";
 
 const API = "https://remoteok.com/api";
+const CACHE_KEY = "remoteok:all";
+const CACHE_TTL = 5 * 60 * 1_000;
 
 type RemoteOkRow = {
   id?: string;
@@ -29,20 +38,20 @@ export async function fetchRemoteOkLeads(
 ): Promise<Lead[]> {
   const maxMatches = opts?.maxMatches ?? 50;
 
-  const res = await fetchWithTimeout(API, {
-    cache: "no-store",
-    headers: {
-      Accept: "application/json",
-      "User-Agent": "FOS-Client-Finder/1.0 (hackathon prototype)",
-    },
-  });
-
-  if (!res.ok) {
-    throw new Error(`Remote OK HTTP ${res.status}`);
+  let rows = getCached<RemoteOkRow[]>(CACHE_KEY);
+  if (!rows) {
+    const res = await fetchWithTimeout(API, {
+      cache: "no-store",
+      headers: {
+        Accept: "application/json",
+        "User-Agent": "FOS-Client-Finder/1.0 (hackathon prototype)",
+      },
+    });
+    if (!res.ok) throw new Error(`Remote OK HTTP ${res.status}`);
+    const json = (await res.json()) as unknown[];
+    rows = (Array.isArray(json) ? json.filter(isJobRow) : []) as RemoteOkRow[];
+    setCached(CACHE_KEY, rows, CACHE_TTL);
   }
-
-  const json = (await res.json()) as unknown[];
-  const rows = Array.isArray(json) ? json.filter(isJobRow) : [];
   const out: Lead[] = [];
 
   for (const row of rows) {

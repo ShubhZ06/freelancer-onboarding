@@ -1,8 +1,17 @@
 ﻿import type { IntentPreset, Lead } from "./types";
 import { matchesIntent } from "./intent";
-import { fetchWithTimeout, matchesQuery, stripHtml, truncate } from "./utils";
+import {
+  fetchWithTimeout,
+  getCached,
+  matchesQuery,
+  setCached,
+  stripHtml,
+  truncate,
+} from "./utils";
 
 const API = "https://remotive.com/api/remote-jobs";
+const CACHE_KEY = "remotive:all";
+const CACHE_TTL = 5 * 60 * 1_000;
 
 type RemotiveJob = {
   id: number;
@@ -22,17 +31,17 @@ export async function fetchRemotiveLeads(
 ): Promise<Lead[]> {
   const maxMatches = opts?.maxMatches ?? 50;
 
-  const res = await fetchWithTimeout(API, {
-    cache: "no-store",
-    headers: { Accept: "application/json" },
-  });
-
-  if (!res.ok) {
-    throw new Error(`Remotive HTTP ${res.status}`);
+  let rows = getCached<RemotiveJob[]>(CACHE_KEY);
+  if (!rows) {
+    const res = await fetchWithTimeout(API, {
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+    });
+    if (!res.ok) throw new Error(`Remotive HTTP ${res.status}`);
+    const json = (await res.json()) as { jobs?: RemotiveJob[] };
+    rows = json.jobs ?? [];
+    setCached(CACHE_KEY, rows, CACHE_TTL);
   }
-
-  const json = (await res.json()) as { jobs?: RemotiveJob[] };
-  const rows = json.jobs ?? [];
   const out: Lead[] = [];
 
   for (const row of rows) {

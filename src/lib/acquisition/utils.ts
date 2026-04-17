@@ -1,4 +1,27 @@
-﻿const FETCH_TIMEOUT_MS = 9_000;
+﻿const FETCH_TIMEOUT_MS = 15_000;
+
+// ─── Simple in-process TTL cache ─────────────────────────────────────────────
+// Used by bulk connectors (Arbeitnow, Remotive, Remote OK) that always return
+// the full dataset and are filtered locally. Avoids re-downloading 400-600 KB
+// on every search and prevents spurious timeouts on repeat requests.
+
+type CacheEntry<T> = { value: T; expiresAt: number };
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const _cache = new Map<string, CacheEntry<any>>();
+
+export function getCached<T>(key: string): T | null {
+  const entry = _cache.get(key) as CacheEntry<T> | undefined;
+  if (!entry) return null;
+  if (Date.now() > entry.expiresAt) {
+    _cache.delete(key);
+    return null;
+  }
+  return entry.value;
+}
+
+export function setCached<T>(key: string, value: T, ttlMs: number): void {
+  _cache.set(key, { value, expiresAt: Date.now() + ttlMs });
+}
 
 export function truncate(text: string, max: number): string {
   if (text.length <= max) return text;

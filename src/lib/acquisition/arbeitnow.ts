@@ -1,8 +1,17 @@
 ﻿import type { IntentPreset, Lead } from "./types";
 import { matchesIntent } from "./intent";
-import { fetchWithTimeout, matchesQuery, stripHtml, truncate } from "./utils";
+import {
+  fetchWithTimeout,
+  getCached,
+  matchesQuery,
+  setCached,
+  stripHtml,
+  truncate,
+} from "./utils";
 
 const API = "https://www.arbeitnow.com/api/job-board-api";
+const CACHE_KEY = "arbeitnow:all";
+const CACHE_TTL = 5 * 60 * 1_000;
 
 type ArbeitnowJob = {
   slug: string;
@@ -24,17 +33,17 @@ export async function fetchArbeitnowLeads(
   const maxScan = opts?.maxScan ?? 3_500;
   const maxMatches = opts?.maxMatches ?? 50;
 
-  const res = await fetchWithTimeout(API, {
-    cache: "no-store",
-    headers: { Accept: "application/json" },
-  });
-
-  if (!res.ok) {
-    throw new Error(`Arbeitnow HTTP ${res.status}`);
+  let rows = getCached<ArbeitnowJob[]>(CACHE_KEY);
+  if (!rows) {
+    const res = await fetchWithTimeout(API, {
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+    });
+    if (!res.ok) throw new Error(`Arbeitnow HTTP ${res.status}`);
+    const json = (await res.json()) as { data?: ArbeitnowJob[] };
+    rows = json.data ?? [];
+    setCached(CACHE_KEY, rows, CACHE_TTL);
   }
-
-  const json = (await res.json()) as { data?: ArbeitnowJob[] };
-  const rows = json.data ?? [];
   const out: Lead[] = [];
 
   for (
