@@ -8,9 +8,18 @@ interface Props {
   onSend: () => void;
 }
 
+function buildStableDocumentId(seed: string) {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i += 1) {
+    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  }
+  return hash.toString(36).toUpperCase().padStart(9, "0").slice(-9);
+}
+
 export function ContractPreview({ result, templateType, onSend }: Props) {
   const isPremium = templateType === "Premium";
   const isCorporate = templateType === "Modern Corporate";
+  const stableDocumentId = buildStableDocumentId(result.contract || result.summary || "contract");
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -75,6 +84,8 @@ export function ContractPreview({ result, templateType, onSend }: Props) {
       `}</style>
 
       {/* Summary Section - Hidden in Print */}
+      <div className="bg-[#fcf9f1] border border-[#e8dfc4] p-8 rounded-4xl shadow-sm relative overflow-hidden no-print">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-amber-200/10 rounded-full -mr-16 -mt-16 blur-3xl" />
       <div className="relative overflow-hidden border-4 border-black bg-white p-8 no-print">
         <div className="absolute inset-0 swiss-dots opacity-30" />
         <div className="flex items-center gap-3 mb-6">
@@ -107,8 +118,8 @@ export function ContractPreview({ result, templateType, onSend }: Props) {
                 {isCorporate ? "Professional Services Agreement" : "Freelance Services Agreement"}
               </h2>
               <div className="flex gap-4">
-                <span className="text-[10px] font-black uppercase tracking-[0.24em] text-black/50">VERIFIED DOCUMENT</span>
-                <span className="text-[10px] font-black uppercase tracking-[0.24em] text-black/50">ID: {Math.random().toString(36).substr(2, 9).toUpperCase()}</span>
+                <span className="text-[10px] text-slate-400 uppercase tracking-[0.2em] font-bold">VERIFIED DOCUMENT</span>
+                <span className="text-[10px] text-slate-400 uppercase tracking-[0.2em] font-bold">ID: {stableDocumentId}</span>
               </div>
             </div>
             <div className="text-right">
@@ -150,7 +161,7 @@ export function ContractPreview({ result, templateType, onSend }: Props) {
         </button>
         <button 
           onClick={onSend}
-          className="flex-[2] border-2 border-black bg-black px-6 py-4 text-sm font-black uppercase tracking-[0.22em] text-white transition hover:bg-swiss-accent hover:text-black flex items-center justify-center gap-2 group"
+          className="flex-2 bg-indigo-600 text-white rounded-2xl py-4 px-6 font-bold text-sm shadow-xl shadow-indigo-200 hover:bg-indigo-700 hover:shadow-2xl transition-all flex items-center justify-center gap-2 group"
         >
           Send for Digital Signature
           <span className="ml-1 opacity-0 transition-all group-hover:opacity-100 group-hover:translate-x-1">→</span>
