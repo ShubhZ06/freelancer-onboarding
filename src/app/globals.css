@@ -42,9 +42,14 @@ body {
   font-family: var(--font-geist-sans), sans-serif;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+@layer base {
+  /* Keep anchors inheriting color/decoration from parents *unless* a Tailwind
+     utility (e.g. text-white, underline) is applied. Must live inside @layer
+     base — unlayered rules defeat utility layers in the cascade. */
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 }
 
 ::selection {

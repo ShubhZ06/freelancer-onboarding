@@ -35,19 +35,19 @@ export default function Home() {
             <div className="flex flex-wrap gap-3 pt-2">
               <Link
                 href="/sign-up"
-                className="border-4 border-black bg-black px-5 py-3 text-xs font-black uppercase tracking-[0.24em] text-white transition hover:bg-swiss-accent hover:text-black"
+                className="border-4 border-black bg-swiss-accent px-5 py-3 text-xs font-black uppercase tracking-[0.24em] text-black transition hover:bg-black hover:text-white"
               >
                 Sign Up
               </Link>
               <Link
                 href="/sign-in"
-                className="border-4 border-black bg-white px-5 py-3 text-xs font-black uppercase tracking-[0.24em] text-black transition hover:bg-swiss-muted"
+                className="border-4 border-black bg-black px-5 py-3 text-xs font-black uppercase tracking-[0.24em] text-white transition hover:bg-swiss-accent hover:text-black"
               >
                 Sign In
               </Link>
               <Link
                 href="/dashboard"
-                className="border-4 border-black bg-swiss-accent px-5 py-3 text-xs font-black uppercase tracking-[0.24em] text-black transition hover:bg-white"
+                className="border-4 border-black bg-white px-5 py-3 text-xs font-black uppercase tracking-[0.24em] text-black transition hover:bg-swiss-muted"
               >
                 View Dashboard
               </Link>
