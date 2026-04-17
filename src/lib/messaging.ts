@@ -1,6 +1,6 @@
 import twilio from "twilio";
 import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
-import { WHATSAPP_DELIVERY_TO } from "@/lib/comm-config";
+import { getWhatsAppDeliveryTo } from "@/lib/comm-config";
 
 function getTwilioClient() {
   const sid = process.env.TWILIO_ACCOUNT_SID?.trim();
@@ -33,8 +33,7 @@ export function twilioErrorDetail(err: unknown): string {
 }
 
 /**
- * Send WhatsApp via Twilio. Recipient is fixed in comm-config; only the body changes.
- * Set TWILIO_WHATSAPP_FROM e.g. whatsapp:+14155238886 (sandbox) or your approved WhatsApp sender.
+ * Send WhatsApp via Twilio. Recipient is `TWILIO_WHATSAPP_TO`; set `TWILIO_WHATSAPP_FROM` for the sender.
  */
 export async function sendWhatsApp(body: string): Promise<string> {
   const rawFrom = process.env.TWILIO_WHATSAPP_FROM?.trim();
@@ -44,10 +43,11 @@ export async function sendWhatsApp(body: string): Promise<string> {
     );
   }
   const from = toWhatsAppAddress(rawFrom);
+  const to = getWhatsAppDeliveryTo();
   const client = getTwilioClient();
   const msg = await client.messages.create({
     from,
-    to: WHATSAPP_DELIVERY_TO,
+    to,
     body,
   });
   return msg.sid;

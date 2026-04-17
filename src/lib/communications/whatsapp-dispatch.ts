@@ -1,11 +1,12 @@
-import { WHATSAPP_DELIVERY_E164_DISPLAY } from "@/lib/comm-config";
+import { getWhatsAppDeliveryE164Display } from "@/lib/comm-config";
 import { sendWhatsApp, twilioErrorDetail } from "@/lib/messaging";
 
 export function isTwilioWhatsAppConfigured(): boolean {
   return Boolean(
     process.env.TWILIO_ACCOUNT_SID?.trim() &&
       process.env.TWILIO_AUTH_TOKEN?.trim() &&
-      process.env.TWILIO_WHATSAPP_FROM?.trim()
+      process.env.TWILIO_WHATSAPP_FROM?.trim() &&
+      process.env.TWILIO_WHATSAPP_TO?.trim()
   );
 }
 
@@ -25,7 +26,7 @@ export async function dispatchWhatsAppMessage(
   }
 
   console.log("[DEMO] Twilio WhatsApp env not set — skipping real send.");
-  console.log("[DEMO] Would WhatsApp", WHATSAPP_DELIVERY_E164_DISPLAY);
+  console.log("[DEMO] Would WhatsApp", getWhatsAppDeliveryE164Display());
   console.log(body);
   return { ok: true, demo: true };
 }

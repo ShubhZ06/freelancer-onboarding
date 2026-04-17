@@ -1,13 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { WHATSAPP_DELIVERY_E164_DISPLAY } from "@/lib/comm-config";
+import { useState, useEffect, useSyncExternalStore } from "react";
 import type { ClientWire } from "@/lib/demo-db";
+
+const noopSubscribe = () => () => {};
+
+function useIsClient() {
+  return useSyncExternalStore(noopSubscribe, () => true, () => false);
+}
 
 type ToastState = { kind: "success" | "error"; text: string } | null;
 
-export function ClientDashboard() {
-  const [mounted, setMounted] = useState(false);
+type ClientDashboardProps = {
+  /** Shown in the UI; comes from server (`TWILIO_WHATSAPP_TO`). */
+  whatsappDeliveryE164: string;
+};
+
+export function ClientDashboard({ whatsappDeliveryE164 }: ClientDashboardProps) {
+  const isClient = useIsClient();
   const [clientList, setClientList] = useState<ClientWire[]>([]);
   const [selectedId, setSelectedId] = useState("");
 
@@ -27,13 +37,9 @@ export function ClientDashboard() {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!mounted) return;
+    if (!isClient) return;
     fetchClients();
-  }, [mounted]);
+  }, [isClient]);
 
   async function fetchClients() {
     try {
@@ -52,7 +58,7 @@ export function ClientDashboard() {
     }
   }
 
-  if (!mounted) return null;
+  if (!isClient) return null;
 
   const selectedClient = clientList.find((c) => c.id === selectedId);
 
@@ -257,7 +263,7 @@ export function ClientDashboard() {
       <div className="rounded-[1.75rem] border border-slate-200/80 bg-white/85 p-6 shadow-[0_16px_40px_rgba(15,23,42,0.06)]">
         <h2 className="text-2xl font-semibold tracking-tight text-slate-950">Add Client</h2>
         <p className="mt-1 text-sm text-slate-500">
-          WhatsApp deliveries always go to <span className="font-semibold text-slate-700">{WHATSAPP_DELIVERY_E164_DISPLAY}</span>. Add a name and a reference mobile for this workspace (message content still uses the selected client name).
+          WhatsApp deliveries always go to <span className="font-semibold text-slate-700">{whatsappDeliveryE164}</span>. Add a name and a reference mobile for this workspace (message content still uses the selected client name).
         </p>
         <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-end">
           <div className="flex flex-1 flex-col gap-1">
@@ -337,7 +343,7 @@ export function ClientDashboard() {
             </span>
           </Stat>
           <Stat label="WhatsApp to">
-            <span className="text-sm font-medium text-slate-800">{WHATSAPP_DELIVERY_E164_DISPLAY}</span>
+            <span className="text-sm font-medium text-slate-800">{whatsappDeliveryE164}</span>
             <p className="mt-1 text-xs text-slate-400">Ref. {selectedClient.phone}</p>
           </Stat>
           <Stat label="Last Update">
@@ -415,8 +421,8 @@ export function ClientDashboard() {
               <h2 className="text-lg font-semibold text-slate-950">Message Preview</h2>
               <p className="mt-1 text-xs text-slate-400">
                 {previewDemo
-                  ? "Demo mode — add Twilio + TWILIO_WHATSAPP_FROM to send real WhatsApp."
-                  : `Delivered via Twilio WhatsApp → ${WHATSAPP_DELIVERY_E164_DISPLAY}. SID: ${previewSid ?? "n/a"}`}
+                  ? "Demo mode — set Twilio env vars (including TWILIO_WHATSAPP_TO) to send real WhatsApp."
+                  : `Delivered via Twilio WhatsApp → ${whatsappDeliveryE164}. SID: ${previewSid ?? "n/a"}`}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -448,7 +454,7 @@ export function ClientDashboard() {
       {clientList.length === 0 && (
         <div className="rounded-[1.75rem] border border-dashed border-slate-300 bg-white/50 p-10 text-center text-slate-400">
           <p className="text-lg font-medium">No clients yet</p>
-          <p className="mt-1 text-sm">Add a contact to start sending WhatsApp updates to {WHATSAPP_DELIVERY_E164_DISPLAY}.</p>
+          <p className="mt-1 text-sm">Add a contact to start sending WhatsApp updates to {whatsappDeliveryE164}.</p>
         </div>
       )}
     </div>

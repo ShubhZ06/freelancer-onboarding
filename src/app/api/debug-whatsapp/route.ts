@@ -1,29 +1,31 @@
 import { NextResponse } from "next/server";
 import { isTwilioWhatsAppConfigured } from "@/lib/communications";
-import { WHATSAPP_DELIVERY_E164_DISPLAY } from "@/lib/comm-config";
+import { getWhatsAppDeliveryE164Display } from "@/lib/comm-config";
 import { sendWhatsApp, twilioErrorDetail } from "@/lib/messaging";
 
 /**
- * POST (no body) — sends one test WhatsApp to the hardcoded delivery number in comm-config.
+ * POST (no body) — sends one test WhatsApp to TWILIO_WHATSAPP_TO.
  */
 export async function POST() {
   if (!isTwilioWhatsAppConfigured()) {
     return NextResponse.json({
       success: false,
-      error: "Missing Twilio env vars (set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_FROM)",
+      error:
+        "Missing Twilio env vars (set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_FROM, TWILIO_WHATSAPP_TO)",
     });
   }
 
   const from = process.env.TWILIO_WHATSAPP_FROM!.trim();
+  const sentTo = getWhatsAppDeliveryE164Display();
 
   try {
     const msgSid = await sendWhatsApp(
-      `Test WhatsApp from Creator Command Centre → ${WHATSAPP_DELIVERY_E164_DISPLAY}`
+      `Test WhatsApp from Creator Command Centre → ${sentTo}`
     );
     return NextResponse.json({
       success: true,
       sid: msgSid,
-      sentTo: WHATSAPP_DELIVERY_E164_DISPLAY,
+      sentTo,
       from,
     });
   } catch (err: unknown) {
@@ -31,7 +33,7 @@ export async function POST() {
       {
         success: false,
         error: twilioErrorDetail(err),
-        sentTo: WHATSAPP_DELIVERY_E164_DISPLAY,
+        sentTo,
         from,
       },
       { status: 502 }
