@@ -10,6 +10,7 @@ type StoredUser = AuthUser & {
 const USERS_KEY = "fos:users";
 const SESSION_USER_KEY = "fos:session-user";
 const SESSION_COOKIE = "fos_session";
+export const SESSION_USER_EVENT = "fos:session-user-change";
 
 function canUseStorage() {
   return typeof window !== "undefined";
@@ -38,6 +39,7 @@ function setSessionCookie(user: AuthUser) {
   expires.setDate(expires.getDate() + 7);
   document.cookie = `${SESSION_COOKIE}=${encodeURIComponent(user.email)}; path=/; expires=${expires.toUTCString()}; samesite=lax`;
   window.localStorage.setItem(SESSION_USER_KEY, JSON.stringify(user));
+  window.dispatchEvent(new Event(SESSION_USER_EVENT));
 }
 
 export function readSessionUser(): AuthUser | null {
@@ -86,4 +88,5 @@ export function signOutUser() {
 
   document.cookie = `${SESSION_COOKIE}=; path=/; max-age=0; samesite=lax`;
   window.localStorage.removeItem(SESSION_USER_KEY);
+  window.dispatchEvent(new Event(SESSION_USER_EVENT));
 }
