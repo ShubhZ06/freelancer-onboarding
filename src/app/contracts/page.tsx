@@ -1,6 +1,49 @@
+"use client";
+
 import { WorkspaceShell } from "@/components/navigation";
 import { PageSection } from "@/components/workspace";
 import { ContractWizard } from "@/components/contracts/ContractWizard";
+import { ContractCard, type ContractData } from "@/components/contracts";
+
+// Demo contracts -- replace with real data from MongoDB / API in production
+const DEMO_CONTRACTS: (ContractData & { initialStatus: string })[] = [
+  {
+    id: "contract-001",
+    title: "Website Redesign SOW -- Acme Corp",
+    clientName: "Sarah Chen",
+    clientEmail: "sarah@acmecorp.com",
+    userId: "user_demo_001",
+    pdfBase64: "",
+    initialStatus: "Ready to Send",
+  },
+  {
+    id: "contract-002",
+    title: "Monthly Retainer Agreement -- Nova Labs",
+    clientName: "Marcus Rivera",
+    clientEmail: "marcus@novalabs.io",
+    userId: "user_demo_001",
+    pdfBase64: "",
+    initialStatus: "Ready to Send",
+  },
+  {
+    id: "contract-003",
+    title: "Brand Identity Package -- Bloom Studio",
+    clientName: "Emily Tanaka",
+    clientEmail: "emily@bloomstudio.co",
+    userId: "user_demo_001",
+    pdfBase64: "",
+    initialStatus: "Draft",
+  },
+  {
+    id: "contract-004",
+    title: "API Integration Scope -- FinEdge",
+    clientName: "David Park",
+    clientEmail: "david@finedge.com",
+    userId: "user_demo_001",
+    pdfBase64: "",
+    initialStatus: "Signed",
+  },
+];
 
 export default function ContractsPage() {
   return (
@@ -15,6 +58,17 @@ export default function ContractsPage() {
       >
         <div className="mt-8 bg-white/50 backdrop-blur-sm rounded-[2rem] border border-slate-200/60 p-8 shadow-xl shadow-slate-200/20">
           <ContractWizard />
+        </div>
+      </PageSection>
+
+      <PageSection
+        title="Your contracts"
+        description="Click 'Send to Client' to create a Documenso signing envelope."
+      >
+        <div className="grid gap-4 md:grid-cols-2">
+          {DEMO_CONTRACTS.map((c) => (
+            <ContractCard key={c.id} contract={c} initialStatus={c.initialStatus} />
+          ))}
         </div>
       </PageSection>
 
