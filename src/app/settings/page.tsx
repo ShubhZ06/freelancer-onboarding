@@ -1,65 +1,46 @@
 import { WorkspaceShell } from "@/components/navigation";
-import { InsightCard, ListCard, PageSection } from "@/components/workspace";
+import { ListCard, PageSection } from "@/components/workspace";
+import { AuthBar } from "@/components/auth/AuthBar";
 
 export default function SettingsPage() {
+  const setupOutcomes = [
+    "Business profile defaults prefill proposals and contracts automatically.",
+    "Clause preferences keep legal language consistent across projects.",
+    "Notification rules define when clients receive updates and warning nudges.",
+  ];
+
   return (
     <WorkspaceShell
       eyebrow="Setup"
-      title="A setup page for profile, templates, integrations, and preferences"
-      description="This page gives future configuration work a home so operational pages stay focused on daily execution instead of admin tasks."
+      title="Configure Once. Reuse Everywhere."
+      description="Your best-practice process becomes the default for every client."
     >
+      <AuthBar />
+
       <PageSection
-        title="Why setup deserves its own destination"
-        description="Freelancers should be able to configure the system once and then spend most of their time in action-oriented pages."
+        title="How This Module Helps"
+        description="Setup turns your best-practice process into reusable defaults for every client."
+        tone="yellow"
+        eyebrow="Why"
       >
-        <div className="grid gap-4 md:grid-cols-3">
-          <InsightCard
-            label="Profile completion"
-            value="72%"
-            detail="Legal identity, rates, jurisdiction, and service defaults."
-          />
-          <InsightCard
-            label="Connected sources"
-            value="5"
-            detail="Lead, billing, and communication integrations."
-          />
-          <InsightCard
-            label="Templates ready"
-            value="6"
-            detail="Contract categories seeded for quick generation."
-          />
+        <div className="border-4 border-black bg-[#fffdf5] p-5 neo-shadow-sm">
+          <p className="text-lg font-bold leading-relaxed text-black">
+            Configure <span className="bg-[#ffd93d] px-2">once</span>, then reuse across{" "}
+            <span className="bg-[#ff6b6b] px-2">acquisition</span>,{" "}
+            <span className="bg-[#c4b5fd] px-2">contracts</span>, and{" "}
+            <span className="bg-black px-2 text-[#ffd93d]">communication</span> — without repetitive edits.
+          </p>
         </div>
       </PageSection>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <PageSection
-          title="Recommended future modules"
-          description="This page should collect admin-oriented workflows that support the rest of the product."
-        >
-          <ListCard
-            title="Primary modules"
-            items={[
-              "Freelancer profile and commercial defaults editor.",
-              "Contract template, clause, and signature preference management.",
-              "Lead source, payments, notifications, and budget integration settings.",
-            ]}
-          />
-        </PageSection>
-
-        <PageSection
-          title="UX principle"
-          description="Configuration should feel calm, explicit, and safely separated from live workflow actions."
-        >
-          <ListCard
-            title="Best experience direction"
-            items={[
-              "Group settings by business function instead of technical provider names.",
-              "Use progress indicators so onboarding feels finite and achievable.",
-              "Keep risky changes like jurisdiction or signature defaults clearly explained before save.",
-            ]}
-          />
-        </PageSection>
-      </div>
+      <PageSection
+        title="What You Can Do"
+        description="Practical outcomes from this page."
+        tone="cream"
+        eyebrow="Actions"
+      >
+        <ListCard title="Setup Workflow" items={setupOutcomes} tone="yellow" />
+      </PageSection>
     </WorkspaceShell>
   );
 }

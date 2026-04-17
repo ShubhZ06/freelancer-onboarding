@@ -1,28 +1,125 @@
-import {
-  DashboardHeader,
-  FeaturePillars,
-  MetricsOverview,
-  PipelineTimeline,
-  QuickActions,
-} from "@/components/dashboard";
-import { AuthBar } from "@/components/auth/AuthBar";
+import Link from "next/link";
 import { WorkspaceShell } from "@/components/navigation";
+import { InsightCard } from "@/components/workspace";
+
+const moduleLinks = [
+  {
+    href: "/acquisition",
+    label: "Client Finder",
+    detail: "Find and qualify leads from public listings.",
+    why: "Intent chips filter listings by freelance-ready language before you pitch.",
+    tone: "bg-[#ff6b6b]",
+    num: "01",
+    icon: "◉",
+  },
+  {
+    href: "/communications",
+    label: "Client Communication",
+    detail: "Send client updates and status reports.",
+    why: "Publish status reports and warning messages from one place.",
+    tone: "bg-[#ffd93d]",
+    num: "02",
+    icon: "✉",
+  },
+  {
+    href: "/contracts",
+    label: "Contract Generator",
+    detail: "Create and send agreements in minutes.",
+    why: "Generate legally clear drafts with consistent structure so projects start quickly.",
+    tone: "bg-[#c4b5fd]",
+    num: "03",
+    icon: "📄",
+  },
+  {
+    href: "/settings",
+    label: "Settings",
+    detail: "Manage profile and defaults.",
+    why: "Set defaults once so every workflow starts your way.",
+    tone: "bg-[#ff6b6b]",
+    num: "04",
+    icon: "⚙",
+  },
+];
 
 export default function DashboardPage() {
   return (
     <WorkspaceShell
       eyebrow="Dashboard"
-      title="Command center for the freelancer workspace"
-      description="Overview first, then the operational modules: leads, contracts, signing, messages, spending, and setup."
+      title="Your Workspace Command Center"
+      description="Launch every workflow from here. Each module knows its job — you just pick the next move."
     >
-      <AuthBar />
-      <DashboardHeader />
-      <MetricsOverview />
-      <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
-        <FeaturePillars />
-        <QuickActions />
+      {/* Snapshot insights */}
+      <div className="grid gap-6 md:grid-cols-3">
+        <InsightCard
+          label="This Week"
+          value="$12,480"
+          detail="Billed across 3 active clients. ▲ 24% vs last week."
+          tone="accent"
+          tilt="left"
+        />
+        <InsightCard
+          label="Pending"
+          value="04"
+          detail="Contracts waiting for review. Follow up now."
+          tone="yellow"
+          tilt="none"
+        />
+        <InsightCard
+          label="Leads"
+          value="12"
+          detail="Qualified this week from 87 scanned listings."
+          tone="violet"
+          tilt="right"
+        />
       </div>
-      <PipelineTimeline />
+
+      {/* Module launcher */}
+      <section className="border-4 border-black bg-white neo-shadow-md">
+        <header className="flex items-center justify-between border-b-4 border-black bg-black px-6 py-5 sm:px-8">
+          <div>
+            <p className="font-heading text-xs font-black uppercase tracking-[0.3em] text-[#ffd93d]">
+              Launcher
+            </p>
+            <h2 className="font-heading mt-1 text-3xl font-black uppercase tracking-tight text-white sm:text-4xl">
+              Jump To A Module
+            </h2>
+          </div>
+          <span className="neo-pill neo-tag-accent">04</span>
+        </header>
+        <div className="grid gap-5 p-6 sm:grid-cols-2 sm:p-8">
+          {moduleLinks.map((module, idx) => {
+            const tilts = ["-rotate-1", "rotate-1", "-rotate-1", "rotate-1"];
+            return (
+              <Link
+                key={module.href}
+                href={module.href}
+                className={`group relative block border-4 border-black ${module.tone} p-5 neo-shadow-sm transition-all duration-200 hover:-translate-y-1 hover:rotate-0 hover:shadow-[10px_10px_0_0_#000] ${tilts[idx]}`}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl" aria-hidden>
+                      {module.icon}
+                    </span>
+                    <span className="font-heading text-stroke text-5xl font-black leading-none">
+                      {module.num}
+                    </span>
+                  </div>
+                  <span className="inline-flex h-9 w-9 items-center justify-center border-[3px] border-black bg-white font-heading text-lg font-black transition-transform group-hover:translate-x-1">
+                    →
+                  </span>
+                </div>
+                <p className="font-heading mt-4 text-2xl font-black uppercase tracking-tight text-black">
+                  {module.label}
+                </p>
+                <p className="mt-1 text-sm font-bold text-black">{module.detail}</p>
+                <p className="mt-4 border-t-[3px] border-black pt-3 text-xs font-bold leading-snug text-black">
+                  {module.why}
+                </p>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
     </WorkspaceShell>
   );
 }

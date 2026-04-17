@@ -4,27 +4,39 @@ export function PageSection({
   title,
   description,
   children,
+  tone = "cream",
+  eyebrow = "Section",
 }: {
   title: string;
   description: string;
   children: ReactNode;
+  tone?: "cream" | "yellow" | "violet" | "white";
+  eyebrow?: string;
 }) {
+  const toneBg = {
+    cream: "bg-[#fffdf5]",
+    yellow: "bg-[#ffd93d]",
+    violet: "bg-[#c4b5fd]",
+    white: "bg-white",
+  }[tone];
+
   return (
-    <section className="border-4 border-black bg-white p-5 sm:p-6 lg:p-8">
-      <div className="flex flex-col gap-3 border-b-2 border-black pb-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-xs font-black uppercase tracking-[0.3em] text-swiss-accent">
-            Section
-          </p>
-          <h2 className="mt-2 text-2xl font-black uppercase tracking-tighter text-black sm:text-3xl">
-            {title}
-          </h2>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-black/70">
-            {description}
-          </p>
+    <section className={`relative border-4 border-black ${toneBg} neo-shadow-md`}>
+      <div className="border-b-4 border-black bg-black px-6 py-5 sm:px-8">
+        <div className="flex items-center gap-3">
+          <span className="inline-block h-3 w-3 bg-[#ff6b6b]" aria-hidden />
+          <span className="font-heading text-xs font-black uppercase tracking-[0.3em] text-[#ffd93d]">
+            {eyebrow}
+          </span>
         </div>
+        <h2 className="font-heading mt-2 text-3xl font-black uppercase leading-tight tracking-tight text-white sm:text-4xl">
+          {title}
+        </h2>
+        <p className="mt-2 max-w-3xl text-base font-bold leading-snug text-white/90 sm:text-lg">
+          {description}
+        </p>
       </div>
-      <div className="mt-6">{children}</div>
+      <div className="p-6 sm:p-8">{children}</div>
     </section>
   );
 }

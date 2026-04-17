@@ -2,64 +2,48 @@ import { WorkspaceShell } from "@/components/navigation";
 import { InsightCard, ListCard, PageSection } from "@/components/workspace";
 
 export default function SigningPage() {
+  const pipelineHints = [
+    "Pending signatures are grouped by client priority and due date.",
+    "Each envelope shows the last reminder time to prevent duplicate follow-ups.",
+    "Signed contracts become evidence entries with timestamp and signer details.",
+  ];
+
   return (
     <WorkspaceShell
       eyebrow="Signing"
-      title="Track signature status without mixing it into contract drafting"
-      description="Signing is a separate moment in the customer journey, so it should have its own clear page focused on trust, status, and proof."
+      title="Don't Let Deals Go Cold"
+      description="Track every signature, every envelope, every follow-up — in one timeline."
     >
+      <div className="grid gap-6 md:grid-cols-3">
+        <InsightCard label="Awaiting Sign" value="04" detail="2 sent this morning. 1 overdue." tone="accent" tilt="left" />
+        <InsightCard label="Signed" value="12" detail="This month. Above quarterly average." tone="yellow" tilt="none" />
+        <InsightCard label="Reminders" value="03" detail="Auto-scheduled for tomorrow 9am." tone="violet" tilt="right" />
+      </div>
+
       <PageSection
-        title="Signing operations"
-        description="This page should help the freelancer answer three things quickly: who has viewed, who has signed, and what needs a reminder."
+        title="How This Module Helps"
+        description="Signing keeps revenue-moving contracts from stalling after proposal acceptance."
+        tone="yellow"
+        eyebrow="Why"
       >
-        <div className="grid gap-4 md:grid-cols-3">
-          <InsightCard
-            label="Sent envelopes"
-            value="9"
-            detail="Awaiting view or signature activity."
-          />
-          <InsightCard
-            label="Viewed not signed"
-            value="4"
-            detail="The highest-priority group for reminders and follow-up."
-          />
-          <InsightCard
-            label="Verified archives"
-            value="27"
-            detail="Signed files hashed, stored, and ready for audit lookup."
-          />
+        <div className="border-4 border-black bg-[#fffdf5] p-5 neo-shadow-sm">
+          <p className="text-lg font-bold leading-relaxed text-black">
+            One timeline tracks <span className="bg-black px-2 text-[#ffd93d]">draft sent</span>,{" "}
+            <span className="bg-[#ff6b6b] px-2">opened</span>,{" "}
+            <span className="bg-[#c4b5fd] px-2">signed</span>, and reminder points — so you can
+            act before a deal goes cold.
+          </p>
         </div>
       </PageSection>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <PageSection
-          title="Recommended future modules"
-          description="The page should emphasize status confidence and clear evidence trails."
-        >
-          <ListCard
-            title="Primary modules"
-            items={[
-              "Envelope list grouped by status instead of a dense chronological table.",
-              "Signature detail page with signer evidence, timestamps, and reminder history.",
-              "Verification panel for hash checks and archive state.",
-            ]}
-          />
-        </PageSection>
-
-        <PageSection
-          title="UX principle"
-          description="Trust is the main design priority here."
-        >
-          <ListCard
-            title="Best experience direction"
-            items={[
-              "Use a calm, high-clarity layout with explicit state transitions.",
-              "Highlight tamper-evident proof and signed archive availability.",
-              "Keep reminder actions near the envelope status rather than hidden in menus.",
-            ]}
-          />
-        </PageSection>
-      </div>
+      <PageSection
+        title="What You Can Do"
+        description="Practical actions this page supports."
+        tone="cream"
+        eyebrow="Actions"
+      >
+        <ListCard title="Signing Workflow" items={pipelineHints} tone="violet" />
+      </PageSection>
     </WorkspaceShell>
   );
 }
