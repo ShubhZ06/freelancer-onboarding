@@ -8,6 +8,7 @@ const navigationItems = [
   { href: "/acquisition", label: "Client Finder", icon: "◉" },
   { href: "/communications", label: "Client Communication", icon: "✉" },
   { href: "/contracts", label: "Contract Generator", icon: "📄" },
+  { href: "/payment/generate", label: "Payments", icon: "💳" },
   { href: "/settings", label: "Settings", icon: "⚙" },
 ];
 
