@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { ContractResult } from "@/lib/contract-engine";
 
 interface Props {
