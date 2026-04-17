@@ -1,63 +1,55 @@
 import { WorkspaceShell } from "@/components/navigation";
-import { InsightCard, ListCard, PageSection } from "@/components/workspace";
+import { PageSection } from "@/components/workspace";
+import { ContractWizard } from "@/components/contracts/ContractWizard";
 
 export default function ContractsPage() {
   return (
     <WorkspaceShell
       eyebrow="Contracts"
       title="A dedicated contract workspace built for speed and clarity"
-      description="Contracts deserve their own page because they carry legal weight. The UX should help users move from template selection to review and send without ambiguity."
+      description="Contracts deserve their own page because they carry legal weight. Generate, review, and send without ambiguity."
     >
       <PageSection
-        title="Core contract view"
-        description="This page should center around contract creation and review rather than dashboard-style analytics."
+        title="Smart Contract Generator"
+        description="Fill in what you know. Our engine will suggest the best structure and include necessary protection clauses automatically."
       >
-        <div className="grid gap-4 md:grid-cols-3">
-          <InsightCard
-            label="Draft contracts"
-            value="12"
-            detail="Contracts assembled from templates and project variables."
-          />
-          <InsightCard
-            label="Ready to send"
-            value="3"
-            detail="PDFs rendered and waiting for final freelancer review."
-          />
-          <InsightCard
-            label="Versioned safely"
-            value="100%"
-            detail="Every sent document should map back to an immutable version."
-          />
+        <div className="mt-8 bg-white/50 backdrop-blur-sm rounded-[2rem] border border-slate-200/60 p-8 shadow-xl shadow-slate-200/20">
+          <ContractWizard />
         </div>
       </PageSection>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="mt-12 grid gap-6 lg:grid-cols-2">
         <PageSection
-          title="Recommended future modules"
-          description="The contract area should stay structured and document-first."
+          title="UX Principles Applied"
+          description="How we ensure legal clarity and freelancer protection."
         >
-          <ListCard
-            title="Primary modules"
-            items={[
-              "Contract generator wizard driven by profile defaults and client variables.",
-              "Template and clause selector with category-specific defaults.",
-              "Version history panel with PDF status and send readiness indicators.",
-            ]}
-          />
+          <div className="space-y-4">
+            <div className="flex gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+              <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-xs">01</div>
+              <div>
+                <p className="font-medium text-slate-900">Plain Language First</p>
+                <p className="text-sm text-slate-500">Every contract is paired with a summary to reduce legal anxiety.</p>
+              </div>
+            </div>
+            <div className="flex gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs">02</div>
+              <div>
+                <p className="font-medium text-slate-900">Response Guard</p>
+                <p className="text-sm text-slate-500">48-hour auto-approval clauses are injected into every agreement.</p>
+              </div>
+            </div>
+          </div>
         </PageSection>
 
         <PageSection
-          title="UX principle"
-          description="Reduce legal anxiety by making state and wording easy to trust."
+          title="Draft Mode System"
+          description="Don't let missing data stop your momentum."
         >
-          <ListCard
-            title="Best experience direction"
-            items={[
-              "Always show contract status clearly: draft, rendered, sent, signed.",
-              "Pair the legal document with a plain-language summary preview.",
-              "Use step-by-step creation instead of exposing all fields at once.",
-            ]}
-          />
+          <div className="p-6 rounded-2xl bg-indigo-50/50 border border-indigo-100 border-dashed">
+            <p className="text-sm leading-relaxed text-slate-600 italic">
+              "Missing fields are automatically replaced with 'To be confirmed'. Agreements become binding once final variables are settled in a follow-up version."
+            </p>
+          </div>
         </PageSection>
       </div>
     </WorkspaceShell>
