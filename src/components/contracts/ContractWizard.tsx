@@ -9,6 +9,108 @@ type Step = "input" | "template" | "generating" | "preview";
 
 type SentData = { signingUrl: string; contractId: string | null; clientName: string; documentName: string };
 
+function sanitizePdfText(value: string) {
+  return value
+    .normalize("NFKD")
+    .replace(/[^\x00-\xFF]/g, "-")
+    .replace(/\\/g, "\\\\")
+    .replace(/\(/g, "\\(")
+    .replace(/\)/g, "\\)");
+}
+
+function buildGeneratedContractPdfBase64(documentName: string, summary: string, contract: string) {
+  const rows: string[] = [];
+
+  rows.push(`Document: ${documentName}`);
+  rows.push("");
+  rows.push("Plain English Summary");
+  rows.push(...summary.split("\n"));
+  rows.push("");
+  rows.push("Freelance Services Agreement");
+  rows.push(...contract.split("\n"));
+
+  const maxCharsPerLine = 92;
+  const wrapped: string[] = [];
+  for (const row of rows) {
+    const line = row.trimEnd();
+    if (!line) {
+      wrapped.push("");
+      continue;
+    }
+    let rest = line;
+    while (rest.length > maxCharsPerLine) {
+      wrapped.push(rest.slice(0, maxCharsPerLine));
+      rest = rest.slice(maxCharsPerLine);
+    }
+    wrapped.push(rest);
+  }
+
+  const linesPerPage = 50;
+  const pages: string[][] = [];
+  for (let i = 0; i < wrapped.length; i += linesPerPage) {
+    pages.push(wrapped.slice(i, i + linesPerPage));
+  }
+
+  const objects: string[] = [];
+
+  // 1: Catalog
+  objects.push(`1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n`);
+
+  // 2: Pages
+  const pageObjectIds: number[] = [];
+  for (let i = 0; i < pages.length; i += 1) {
+    pageObjectIds.push(3 + i * 2);
+  }
+  objects.push(
+    `2 0 obj\n<< /Type /Pages /Kids [${pageObjectIds.map((id) => `${id} 0 R`).join(" ")}] /Count ${pages.length} >>\nendobj\n`
+  );
+
+  // Pages + content streams
+  for (let i = 0; i < pages.length; i += 1) {
+    const pageObjId = 3 + i * 2;
+    const contentObjId = pageObjId + 1;
+
+    const lineOps: string[] = ["BT", "/F1 10 Tf", "72 780 Td"];
+    for (let j = 0; j < pages[i].length; j += 1) {
+      const safe = sanitizePdfText(pages[i][j]);
+      lineOps.push(`(${safe}) Tj`);
+      if (j < pages[i].length - 1) {
+        lineOps.push("0 -14 Td");
+      }
+    }
+    lineOps.push("ET");
+    const contentStream = lineOps.join("\n");
+
+    objects.push(
+      `${pageObjId} 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 ${3 + pages.length * 2} 0 R >> >> /Contents ${contentObjId} 0 R >>\nendobj\n`
+    );
+    objects.push(
+      `${contentObjId} 0 obj\n<< /Length ${contentStream.length} >>\nstream\n${contentStream}\nendstream\nendobj\n`
+    );
+  }
+
+  // Font object
+  const fontObjId = 3 + pages.length * 2;
+  objects.push(`${fontObjId} 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n`);
+
+  let pdf = "%PDF-1.4\n";
+  const offsets = [0];
+  for (const obj of objects) {
+    offsets.push(pdf.length);
+    pdf += obj;
+  }
+
+  const xrefStart = pdf.length;
+  pdf += `xref\n0 ${objects.length + 1}\n`;
+  pdf += "0000000000 65535 f \n";
+  for (let i = 1; i < offsets.length; i += 1) {
+    pdf += `${String(offsets[i]).padStart(10, "0")} 00000 n \n`;
+  }
+  pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefStart}\n%%EOF`;
+
+  return btoa(pdf);
+}
+
 const freelancerTypes: { id: FreelancerType; label: string; icon: string; example: string }[] = [
   { id: "Software Development", label: "Web/App Developer", icon: "💻", example: "Next.js Mobile App" },
   { id: "Design", label: "Designer", icon: "🎨", example: "Brand Identity & Logo" },
@@ -41,6 +143,9 @@ export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
   const [result, setResult] = useState<ContractResult | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [sentData, setSentData] = useState<SentData | null>(null);
+  const [documentBase64, setDocumentBase64] = useState("");
+  const [isPreparingDocument, setIsPreparingDocument] = useState(false);
+  const [documentPrepError, setDocumentPrepError] = useState("");
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -90,6 +195,8 @@ export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
 
   const startGeneration = () => {
     setStep("generating");
+    setDocumentBase64("");
+    setDocumentPrepError("");
     setTimeout(() => {
       const res = generateContract(formData);
       // We manually override the template type in the result if needed or pass it to preview
@@ -100,6 +207,23 @@ export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
 
   // Opens the modal — the modal handles the API call
   const handleSendForSignature = () => {
+    const documentName = `${formData.freelancer_type ?? "Freelance"} Agreement -- ${formData.client_name ?? "Client"}`;
+    if (result && !documentBase64) {
+      setIsPreparingDocument(true);
+      setDocumentPrepError("");
+      try {
+        const base64 = buildGeneratedContractPdfBase64(
+          documentName,
+          result.summary || "",
+          result.contract || ""
+        );
+        setDocumentBase64(base64);
+      } catch {
+        setDocumentPrepError("Could not prepare the generated contract PDF.");
+      } finally {
+        setIsPreparingDocument(false);
+      }
+    }
     setShowModal(true);
   };
 
@@ -188,6 +312,10 @@ export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
           <SendSignatureModal
             documentName={documentName}
             contractId=""
+            pdfBase64={documentBase64}
+            isPreparingDocument={isPreparingDocument}
+            documentPrepError={documentPrepError}
+            initialClientName={formData.client_name || ""}
             onClose={() => setShowModal(false)}
             onSendSuccess={handleModalSuccess}
           />
@@ -204,7 +332,7 @@ export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
           const active = (step === "input" && i === 0) || (step === "template" && i === 1) || (step === "preview" && i === 2);
           const completed = (step === "template" && i === 0) || (step === "preview" && i <= 1);
           return (
-            <div key={t} className="flex-1 min-w-[120px] flex items-center gap-3">
+            <div key={t} className="flex-1 min-w-30 flex items-center gap-3">
               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${active ? "bg-indigo-600 text-white" : completed ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-400"}`}>
                 {completed ? "✓" : i + 1}
               </div>
@@ -245,7 +373,7 @@ export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
           {/* Section: The Parties */}
           <section className="space-y-6">
             <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400">02. The Parties</h3>
-            <div className="grid md:grid-cols-2 gap-8 bg-slate-50/50 p-6 rounded-[2rem] border border-slate-100">
+            <div className="grid md:grid-cols-2 gap-8 bg-slate-50/50 p-6 rounded-4xl border border-slate-100">
               <div className="space-y-4">
                 <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Client (Paying Party)</p>
                 <input name="client_name" value={formData.client_name || ""} placeholder="Full Name or Company" className={`w-full bg-white border rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500/20 ${errors.client_name ? "border-red-300 ring-1 ring-red-300" : "border-slate-200"}`} onChange={handleInputChange} />
@@ -283,8 +411,8 @@ export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
             <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400">04. Compensation</h3>
             <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6">
               <div className="flex gap-4 p-1 bg-slate-100 rounded-xl w-fit">
-                {["Fixed", "Hourly"].map(m => (
-                  <button key={m} onClick={() => setFormData(p => ({ ...p, payment_model: m as any }))} className={`px-6 py-2 rounded-lg text-xs font-bold transition-all ${formData.payment_model === m ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500"}`}>{m} Fee</button>
+                {(["Fixed", "Hourly"] as const).map((m) => (
+                  <button key={m} onClick={() => setFormData((p) => ({ ...p, payment_model: m }))} className={`px-6 py-2 rounded-lg text-xs font-bold transition-all ${formData.payment_model === m ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500"}`}>{m} Fee</button>
                 ))}
               </div>
               <div className="grid md:grid-cols-2 gap-6">

@@ -84,8 +84,6 @@ export function ContractPreview({ result, templateType, onSend }: Props) {
       `}</style>
 
       {/* Summary Section - Hidden in Print */}
-      <div className="bg-[#fcf9f1] border border-[#e8dfc4] p-8 rounded-4xl shadow-sm relative overflow-hidden no-print">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-amber-200/10 rounded-full -mr-16 -mt-16 blur-3xl" />
       <div className="relative overflow-hidden border-4 border-black bg-white p-8 no-print">
         <div className="absolute inset-0 swiss-dots opacity-30" />
         <div className="flex items-center gap-3 mb-6">

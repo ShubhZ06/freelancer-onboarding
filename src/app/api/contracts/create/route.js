@@ -154,6 +154,27 @@ export async function POST(request) {
           email: clientEmail,
           name: clientName,
           role: "SIGNER",
+          fields: [
+            {
+              identifier: 0,
+              type: "SIGNATURE",
+              page: 1,
+              positionX: 15,
+              positionY: 80,
+              width: 32,
+              height: 8,
+              fieldMeta: { type: "signature" },
+            },
+            {
+              identifier: 0,
+              type: "DATE",
+              page: 1,
+              positionX: 52,
+              positionY: 80,
+              width: 20,
+              height: 4,
+            },
+          ],
         },
       ],
       meta: {
@@ -184,12 +205,39 @@ export async function POST(request) {
       );
     }
 
-    // 6. Send/finalize the envelope so recipients are notified and links activate
-    // Some Documenso workspaces leave newly created envelopes in Draft until this call.
-    await documensoFetch(`/envelope/${envelopeId}/send`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-    });
+    // 6. Distribute the envelope so it transitions out of Draft and recipient
+    // signing links become valid.
+    let distributedRecipient = null;
+
+    try {
+      const distributeGeneric = await documensoFetch(`/envelope/distribute`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ envelopeId }),
+      });
+
+      distributedRecipient = distributeGeneric?.recipients?.find(
+        (r) => String(r.email || "").toLowerCase() === clientEmail.toLowerCase()
+      ) ?? null;
+    } catch (firstErr) {
+      const firstMessage = firstErr instanceof Error ? firstErr.message : String(firstErr);
+
+      try {
+        const distributeById = await documensoFetch(`/envelope/${envelopeId}/distribute`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        });
+
+        distributedRecipient = distributeById?.recipients?.find(
+          (r) => String(r.email || "").toLowerCase() === clientEmail.toLowerCase()
+        ) ?? null;
+      } catch (secondErr) {
+        const secondMessage = secondErr instanceof Error ? secondErr.message : String(secondErr);
+        throw new Error(
+          `Failed to distribute envelope via Documenso. First attempt error: ${firstMessage}. Second attempt error: ${secondMessage}`
+        );
+      }
+    }
 
     // 7. Retrieve the finalized envelope to get the recipient signing details
     const envelope = await documensoFetch(`/envelope/${envelopeId}`, {
@@ -203,11 +251,28 @@ export async function POST(request) {
         String(r.email || "").toLowerCase() === clientEmail.toLowerCase()
     );
 
-    const signerToken = signer?.token || signer?.signingToken || null;
-    const signingUrl =
-      signer?.signingUrl ||
-      signer?.url ||
-      (signerToken ? `${DOCUMENSO_BASE_URL}/sign/${signerToken}` : null);
+    const signerToken =
+      signer?.token ||
+      signer?.signingToken ||
+      signer?.directLinkToken ||
+      envelope?.directLink?.token ||
+      createResult?.directLink?.token ||
+      null;
+
+    const signingUrlCandidates = [
+      distributedRecipient?.signingUrl,
+      distributedRecipient?.url,
+      signer?.signingUrl,
+      signer?.signingLink,
+      signer?.url,
+      envelope?.signingUrl,
+      envelope?.url,
+      createResult?.signingUrl,
+      createResult?.url,
+      signerToken ? `${DOCUMENSO_BASE_URL}/sign/${signerToken}` : null,
+    ].filter((value) => typeof value === "string" && value.trim().length > 0);
+
+    const signingUrl = signingUrlCandidates[0] || null;
 
     if (!signingUrl) {
       throw new Error(

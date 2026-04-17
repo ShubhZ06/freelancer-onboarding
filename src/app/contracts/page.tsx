@@ -105,8 +105,6 @@ export default function ContractsPage() {
               initialSigningUrl={c.signingUrl}
             />
           ))}
-        <div className="mt-8 border-4 border-black bg-white p-6 sm:p-8">
-          <ContractWizard />
         </div>
       </PageSection>
 

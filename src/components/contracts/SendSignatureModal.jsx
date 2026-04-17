@@ -68,6 +68,8 @@ function buildFallbackPdfBase64(documentName, recipientName) {
  *   documentName: string;
  *   contractId: string;
  *   pdfBase64?: string;
+ *   isPreparingDocument?: boolean;
+ *   documentPrepError?: string;
  *   initialClientName?: string;
  *   initialClientEmail?: string;
  *   onClose: () => void;
@@ -84,6 +86,8 @@ export function SendSignatureModal({
   documentName,
   contractId,
   pdfBase64 = "",
+  isPreparingDocument = false,
+  documentPrepError = "",
   initialClientName = "",
   initialClientEmail = "",
   onClose,
@@ -112,6 +116,11 @@ export function SendSignatureModal({
   // ── Form submit ────────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (isPreparingDocument || documentPrepError) {
+      return;
+    }
+
     setIsSending(true);
 
     try {
@@ -292,6 +301,18 @@ export function SendSignatureModal({
                 <span className="font-semibold">You control sharing.</span>
               </p>
             </div>
+
+            {isPreparingDocument && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-700">
+                Preparing generated contract PDF...
+              </div>
+            )}
+
+            {!isPreparingDocument && documentPrepError && (
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700">
+                {documentPrepError}
+              </div>
+            )}
           </div>
 
           {/* ── Footer ─────────────────────────────────────────────────────── */}
@@ -300,7 +321,7 @@ export function SendSignatureModal({
             <button
               type="button"
               onClick={onClose}
-              disabled={isSending}
+              disabled={isSending || isPreparingDocument}
               className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-40"
             >
               Cancel
@@ -310,10 +331,12 @@ export function SendSignatureModal({
             <button
               type="submit"
               form="send-signature-form"
-              disabled={isSending}
-              className="flex min-w-[130px] items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-slate-800 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-60"
+              disabled={isSending || isPreparingDocument || !!documentPrepError}
+              className="flex min-w-32.5 items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-slate-800 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-60"
             >
-              {isSending ? (
+              {isPreparingDocument ? (
+                <>Preparing...</>
+              ) : isSending ? (
                 <>
                   {/* Spinner */}
                   <svg
