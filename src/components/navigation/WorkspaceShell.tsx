@@ -25,16 +25,16 @@ export function WorkspaceShell({
           className="pointer-events-none absolute -bottom-10 -left-10 hidden h-24 w-24 border-4 border-black bg-[#c4b5fd] md:block"
         />
 
-        <div className="relative z-10 flex flex-col gap-4 pl-2 sm:pl-4 md:pl-6">
+        <div className="relative z-10 flex flex-col gap-4 px-2 pl-4 sm:px-4 sm:pl-6 md:px-6 md:pl-8">
           <div className="inline-flex w-fit items-center gap-2">
             <span className="neo-tag neo-tag-accent">{eyebrow}</span>
             <span aria-hidden className="h-[3px] w-10 bg-black" />
           </div>
-          <h1 className="font-heading max-w-4xl text-4xl font-black uppercase leading-[0.95] tracking-tighter text-black sm:text-5xl md:text-6xl">
+          <h1 className="font-heading max-w-4xl text-3xl font-black uppercase leading-[0.95] tracking-tighter text-black sm:text-5xl md:text-6xl">
             {title}
           </h1>
           {description ? (
-            <p className="max-w-3xl text-lg font-bold leading-relaxed text-black sm:text-xl">
+            <p className="max-w-3xl text-base font-bold leading-relaxed text-black sm:text-lg md:text-xl">
               {description}
             </p>
           ) : null}
