@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { WorkspaceShell } from "@/components/navigation";
-import { InsightCard } from "@/components/workspace";
 
 const moduleLinks = [
   {
@@ -57,31 +56,6 @@ export default function DashboardPage() {
       title="Your Workspace Command Center"
       description="Launch every workflow from here. Each module knows its job — you just pick the next move."
     >
-      {/* Snapshot insights */}
-      <div className="grid gap-6 md:grid-cols-3">
-        <InsightCard
-          label="This Week"
-          value="$12,480"
-          detail="Billed across 3 active clients. ▲ 24% vs last week."
-          tone="accent"
-          tilt="left"
-        />
-        <InsightCard
-          label="Pending"
-          value="04"
-          detail="Contracts waiting for review. Follow up now."
-          tone="yellow"
-          tilt="none"
-        />
-        <InsightCard
-          label="Leads"
-          value="12"
-          detail="Qualified this week from 87 scanned listings."
-          tone="violet"
-          tilt="right"
-        />
-      </div>
-
       {/* Module launcher */}
       <section className="border-4 border-black bg-white neo-shadow-md">
         <header className="flex items-center justify-between border-b-4 border-black bg-black px-6 py-5 sm:px-8">
