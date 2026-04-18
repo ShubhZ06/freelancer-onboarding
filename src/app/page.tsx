@@ -2,7 +2,7 @@ import Link from "next/link";
 
 const modules = [
   { label: "Dashboard", tone: "bg-[#ff6b6b]" },
-  { label: "Client Finder", tone: "bg-[#ffd93d]" },
+  { label: "Find Clients", tone: "bg-[#ffd93d]" },
   { label: "Client Communication", tone: "bg-[#c4b5fd]" },
   { label: "Contract Generator", tone: "bg-[#ff6b6b]" },
   { label: "Settings", tone: "bg-[#ffd93d]" },

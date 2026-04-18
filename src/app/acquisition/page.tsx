@@ -5,13 +5,13 @@ import { PageSection } from "@/components/workspace";
 export default function AcquisitionPage() {
   return (
     <WorkspaceShell
-      eyebrow="Client Finder"
-      title="Find Client Opportunities From Public Listings"
-      description="Merge Arbeitnow and Remotive (always on), plus Adzuna when configured. Intent chips bias results toward freelance and contract-style work. Results are upserted into MongoDB for your workspace."
+      eyebrow="Find Clients"
+      title="Discover New Client Opportunities Faster"
+      description="Search opportunities, filter by your preferred work style, and move straight into pitching from one screen."
     >
       <PageSection
-        title="Lead Finder"
-        description="Search aggregates multiple sources, dedupes by URL, and persists leads to the database when MONGODB_URI is set."
+        title="Opportunity Search"
+        description="Use keywords, location, and intent filters to find relevant opportunities and shortlist the best matches."
       >
         <LeadFinderPanel />
       </PageSection>

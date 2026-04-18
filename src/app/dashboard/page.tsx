@@ -5,7 +5,7 @@ import { InsightCard } from "@/components/workspace";
 const moduleLinks = [
   {
     href: "/acquisition",
-    label: "Client Finder",
+    label: "Find Clients",
     detail: "Find and qualify leads from public listings.",
     why: "Intent chips filter listings by freelance-ready language before you pitch.",
     tone: "bg-[#ff6b6b]",

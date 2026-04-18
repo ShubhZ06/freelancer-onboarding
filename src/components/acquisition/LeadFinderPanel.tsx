@@ -51,10 +51,10 @@ export function LeadFinderPanel() {
     <div className="flex flex-col gap-6">
       <div className="border-4 border-black bg-white p-5 swiss-dots">
         <p className="text-xs font-black uppercase tracking-[0.3em] text-swiss-accent">
-          Client opportunities
+          Find clients
         </p>
         <p className="mt-3 max-w-3xl text-sm leading-6 text-black/70">
-          Listings from Arbeitnow, Remotive, Remote OK, and optional Adzuna/Jooble/USAJOBS. Leave intent chips off for the broadest results; add chips to bias toward freelance/contract language.
+          Search fresh opportunities, then narrow results with intent filters so you can focus on work that fits you best.
         </p>
 
         <div className="mt-5 grid gap-3 lg:grid-cols-[1fr_240px_auto] lg:items-end">
@@ -68,7 +68,7 @@ export function LeadFinderPanel() {
             />
           </label>
           <label className="flex w-full flex-col gap-1 text-xs font-black uppercase tracking-[0.24em] text-black/60">
-            Location (Adzuna)
+            Location
             <input
               value={where}
               onChange={(e) => setWhere(e.target.value)}
@@ -110,8 +110,7 @@ export function LeadFinderPanel() {
 
       {data?.demo ? (
         <div className="border-2 border-black bg-swiss-accent px-4 py-3 text-sm font-medium text-black">
-          Demo mode: showing sample leads. Configure APIs and MongoDB, or adjust
-          keywords/intent filters for live matches.
+          Preview mode: these are sample opportunities to help you test filters quickly.
         </div>
       ) : null}
 
@@ -125,7 +124,7 @@ export function LeadFinderPanel() {
 
       {data?.persisted ? (
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-black">
-          Saved to MongoDB ({data.leads.length} row(s) upserted this request).
+          Saved in your workspace ({data.leads.length} new or updated result(s)).
         </p>
       ) : null}
 
@@ -206,7 +205,7 @@ export function LeadFinderPanel() {
       </ul>
 
       {!loading && data && data.leads.length === 0 ? (
-        <p className="text-sm text-black/70">No rows to show.</p>
+        <p className="text-sm text-black/70">No opportunities found yet. Try broader keywords or remove a filter.</p>
       ) : null}
 
       {pitchLead ? (

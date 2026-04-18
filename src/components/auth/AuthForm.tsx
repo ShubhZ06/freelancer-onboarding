@@ -227,18 +227,17 @@ export function AuthForm({ mode }: Props) {
 
         <div className="border-4 border-black bg-[#c4b5fd] p-5 neo-shadow-sm">
           <p className="font-heading text-xs font-black uppercase tracking-[0.25em] text-black">
-            Demo Notice
+            Quick note
           </p>
           <p className="mt-2 text-sm font-bold leading-snug text-black">
-            Authentication here is local to this workspace demo. Public landing,
-            sign-in, sign-up, and route protection all wired up for you.
+            Your profile details are used to auto-fill contracts, messages, and settings so you can move faster.
           </p>
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <span className="neo-tag neo-tag-yellow">Landing First</span>
-          <span className="neo-tag neo-tag-violet">Protected Dash</span>
-          <span className="neo-tag">Public Auth</span>
+          <span className="neo-tag neo-tag-yellow">Fast Setup</span>
+          <span className="neo-tag neo-tag-violet">Secure Access</span>
+          <span className="neo-tag">Client Ready</span>
         </div>
       </div>
 

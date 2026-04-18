@@ -21,7 +21,7 @@ export default function ExpensesPage() {
       </div>
 
       <PageSection
-        title="How This Module Helps"
+        title="How This Helps You"
         description="Expenses makes hidden costs visible so your freelance margin stays healthy."
         tone="yellow"
         eyebrow="Why"
@@ -35,7 +35,7 @@ export default function ExpensesPage() {
       </PageSection>
 
       <PageSection
-        title="What You Can Do"
+        title="What You Can Do Today"
         description="Practical outcomes from this page."
         tone="cream"
         eyebrow="Actions"

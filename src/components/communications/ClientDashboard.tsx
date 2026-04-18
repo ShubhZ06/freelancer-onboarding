@@ -163,8 +163,8 @@ export function ClientDashboard({ whatsappDeliveryE164 }: ClientDashboardProps) 
         showToast(
           "success",
           data.demo
-            ? "Logged (demo — configure Twilio for WhatsApp)."
-            : `WhatsApp sent. SID: ${data.twilioSid ?? "n/a"}`
+            ? "Message preview saved. Connect your sending account to deliver live."
+            : "Update sent successfully."
         );
       } else {
         const msg = data.error ?? "Failed to send update.";
@@ -204,8 +204,8 @@ export function ClientDashboard({ whatsappDeliveryE164 }: ClientDashboardProps) 
         showToast(
           "success",
           data.demo
-            ? `Warning logged (demo). Level: ${data.warningLevel}.`
-            : `Warning on WhatsApp. Level ${data.warningLevel}. SID: ${data.twilioSid ?? "n/a"}`
+            ? `Warning saved. Current warning level: ${data.warningLevel}.`
+            : `Warning sent. Current warning level: ${data.warningLevel}.`
         );
       } else {
         const msg = data.error ?? "Failed to send warning.";
@@ -339,7 +339,7 @@ export function ClientDashboard({ whatsappDeliveryE164 }: ClientDashboardProps) 
               {selectedClient.status}
             </span>
           </Stat>
-          <Stat label="WhatsApp to">
+          <Stat label="Delivery number">
             <span className="text-sm font-medium text-black">{whatsappDeliveryE164}</span>
             <p className="mt-1 text-xs text-black/50">Ref. {selectedClient.phone}</p>
           </Stat>
@@ -418,14 +418,14 @@ export function ClientDashboard({ whatsappDeliveryE164 }: ClientDashboardProps) 
               <h2 className="text-lg font-black uppercase tracking-tight text-black">Message Preview</h2>
               <p className="mt-1 text-xs text-black/50">
                 {previewDemo
-                  ? "Demo mode — set Twilio env vars (including TWILIO_WHATSAPP_TO) to send real WhatsApp."
-                  : `Delivered via Twilio WhatsApp → ${whatsappDeliveryE164}. SID: ${previewSid ?? "n/a"}`}
+                  ? "Preview mode — message text is ready. Connect a delivery account to send it live."
+                  : `Delivered to ${whatsappDeliveryE164}.`}
               </p>
             </div>
             <div className="flex items-center gap-2">
               {previewDemo
-                ? <span className="border-2 border-black bg-swiss-accent px-3 py-1 text-xs font-black uppercase tracking-[0.2em] text-black">Demo</span>
-                : <span className="border-2 border-black bg-black px-3 py-1 text-xs font-black uppercase tracking-[0.2em] text-white">Sent via WhatsApp</span>
+                ? <span className="border-2 border-black bg-swiss-accent px-3 py-1 text-xs font-black uppercase tracking-[0.2em] text-black">Preview Mode</span>
+                : <span className="border-2 border-black bg-black px-3 py-1 text-xs font-black uppercase tracking-[0.2em] text-white">Message Sent</span>
               }
               <button
                 onClick={generateVoice}
@@ -451,7 +451,7 @@ export function ClientDashboard({ whatsappDeliveryE164 }: ClientDashboardProps) 
       {clientList.length === 0 && (
         <div className="border-4 border-dashed border-black bg-white p-10 text-center text-black/60">
           <p className="text-lg font-black uppercase tracking-tight text-black">No clients yet</p>
-          <p className="mt-1 text-sm">Add a contact to start sending WhatsApp updates to {whatsappDeliveryE164}.</p>
+          <p className="mt-1 text-sm">Add a contact to start sending updates and reminders.</p>
         </div>
       )}
     </div>

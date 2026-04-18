@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 const navigationItems = [
   { href: "/dashboard", label: "Dashboard", icon: "◆" },
-  { href: "/acquisition", label: "Client Finder", icon: "◉" },
+  { href: "/acquisition", label: "Find Clients", icon: "◉" },
   { href: "/communications", label: "Client Communication", icon: "✉" },
   { href: "/contracts", label: "Contract Generator", icon: "📄" },
   { href: "/payment/generate", label: "Payments", icon: "💳" },

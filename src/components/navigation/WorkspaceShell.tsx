@@ -22,10 +22,10 @@ export function WorkspaceShell({
         {/* Violet shape — bottom-left */}
         <div
           aria-hidden
-          className="pointer-events-none absolute -bottom-6 -left-6 h-24 w-24 border-4 border-black bg-[#c4b5fd]"
+          className="pointer-events-none absolute -bottom-10 -left-10 hidden h-24 w-24 border-4 border-black bg-[#c4b5fd] md:block"
         />
 
-        <div className="relative z-10 flex flex-col gap-4">
+        <div className="relative z-10 flex flex-col gap-4 pl-2 sm:pl-4 md:pl-6">
           <div className="inline-flex w-fit items-center gap-2">
             <span className="neo-tag neo-tag-accent">{eyebrow}</span>
             <span aria-hidden className="h-[3px] w-10 bg-black" />

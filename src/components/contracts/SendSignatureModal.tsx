@@ -323,7 +323,7 @@ export function SendSignatureModal({
               <div className="flex items-start gap-3 border-4 border-black bg-[#c4b5fd] px-4 py-3 neo-shadow-sm">
                 <span className="font-heading text-xl font-black" aria-hidden="true">ℹ</span>
                 <p className="text-sm font-bold leading-snug text-black">
-                  The contract PDF will be uploaded to Documenso. The recipient gets a secure signing link.{" "}
+                  The contract PDF will be prepared and shared through a secure signing link.{" "}
                   <span className="font-heading uppercase tracking-wider">You control sharing.</span>
                 </p>
               </div>
