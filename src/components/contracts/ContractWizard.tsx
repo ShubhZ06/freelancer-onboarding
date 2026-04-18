@@ -14,8 +14,6 @@ import { SendSignatureModal } from "./SendSignatureModal";
 type Step = "input" | "template" | "generating" | "preview";
 type TemplateType = "Free" | "Premium" | "Modern Corporate";
 
-type SentData = { signingUrl: string; contractId: string | null; clientName: string; documentName: string };
-
 const freelancerTypes: Array<{ id: FreelancerType; label: string; example: string; tone: string }> = [
   { id: "Software Development", label: "Web/App Dev", example: "Next.js web app", tone: "bg-[#ff6b6b]" },
   { id: "Design", label: "Designer", example: "Brand identity", tone: "bg-[#ffd93d]" },
@@ -28,7 +26,7 @@ const freelancerTypes: Array<{ id: FreelancerType; label: string; example: strin
 const paymentModels: Array<ContractInput["payment_model"]> = ["Fixed", "Hourly"];
 
 type ContractWizardProps = {
-  /** Called after a contract is successfully sent so the parent can add it to the list */
+  /** Optional callback for consumers that track sent contracts externally */
   onContractSent?: (contract: {
     id: string;
     title: string;
@@ -44,7 +42,7 @@ export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>("Free");
   const [result, setResult] = useState<ContractResult | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [sentData, setSentData] = useState<SentData | null>(null);
+  const [documentBase64, setDocumentBase64] = useState("");
 
   const [formData, setFormData] = useState<ContractInput>({
     payment_model: "Fixed",
@@ -106,6 +104,7 @@ export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
 
   function startGeneration() {
     setStep("generating");
+    setDocumentBase64("");
     setTimeout(() => {
       const generated = generateContract(formData);
       setResult({ ...generated, selectedTemplate });
@@ -113,8 +112,9 @@ export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
     }, 1300);
   }
 
-  // Opens the modal — the modal handles the API call
-  const handleSendForSignature = () => {
+  // Opens the modal with a PDF generated from the rendered React contract canvas
+  const handleSendForSignature = (generatedPdfBase64: string) => {
+    setDocumentBase64(generatedPdfBase64);
     setShowModal(true);
   };
 
@@ -127,15 +127,7 @@ export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
     clientEmail: string;
   }) => {
     const documentName = result ? `${formData.freelancer_type ?? "Freelance"} Agreement — ${formData.client_name ?? "Client"}` : "Contract";
-    setSentData({
-      signingUrl: data.signingUrl,
-      contractId: data.contractId,
-      clientName: data.clientName,
-      documentName,
-    });
-    setShowModal(false);
 
-    // Notify parent so it can prepend this contract to the 'Your contracts' list
     onContractSent?.({
       id: data.contractId ?? data.documentId,
       title: documentName,
@@ -175,24 +167,13 @@ export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
           onSend={handleSendForSignature}
         />
 
-        {sentData && (
-          <div className="mt-6 border-4 border-black bg-[#c4b5fd] px-5 py-4 neo-shadow-sm">
-            <p className="text-base font-bold text-black">
-              ✓ Sent <span className="font-heading font-black">{sentData.documentName}</span> to{" "}
-              <span className="font-heading font-black">{sentData.clientName}</span>. Status is now{" "}
-              <span className="inline-flex items-center border-[3px] border-black bg-black px-2 py-0.5 text-xs font-black uppercase tracking-widest text-[#ffd93d]">
-                Sent
-              </span>{" "}
-              in Your Contracts.
-            </p>
-          </div>
-        )}
-
         {/* Send Signature Modal */}
         {showModal && (
           <SendSignatureModal
             documentName={documentName}
             contractId=""
+            pdfBase64={documentBase64}
+            initialClientName={formData.client_name || ""}
             onClose={() => setShowModal(false)}
             onSendSuccess={handleModalSuccess}
           />
@@ -225,6 +206,7 @@ export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
                 {label}
               </span>
               {i < 2 ? <span aria-hidden className="h-[3px] w-6 bg-black" /> : null}
+
             </div>
           );
         })}
@@ -428,6 +410,7 @@ export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
             className="neo-btn neo-btn-primary w-full py-5 text-base"
           >
             Continue to Style Selection →
+
           </button>
         </div>
       ) : null}
