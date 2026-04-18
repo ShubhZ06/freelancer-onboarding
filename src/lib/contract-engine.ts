@@ -9,9 +9,15 @@ export type FreelancerType =
 
 export interface ContractInput {
   client_name?: string;
+  client_email?: string;
   client_location?: string;
   freelancer_name?: string;
   freelancer_location?: string;
+  freelancer_email?: string;
+  freelancer_phone?: string;
+  freelancer_business_name?: string;
+  freelancer_business_location?: string;
+  freelancer_business_registration_number?: string;
   jurisdiction?: string;
   project_type?: string;
   scope_of_work?: string;
@@ -67,9 +73,15 @@ export function generateContract(input: ContractInput): ContractResult {
 
   const data = {
     client_name: input.client_name || DEFAULT_VALUE,
+    client_email: input.client_email || DEFAULT_VALUE,
     client_location: input.client_location || DEFAULT_VALUE,
     freelancer_name: input.freelancer_name || DEFAULT_VALUE,
     freelancer_location: input.freelancer_location || DEFAULT_VALUE,
+    freelancer_email: input.freelancer_email || DEFAULT_VALUE,
+    freelancer_phone: input.freelancer_phone || DEFAULT_VALUE,
+    freelancer_business_name: input.freelancer_business_name || DEFAULT_VALUE,
+    freelancer_business_location: input.freelancer_business_location || DEFAULT_VALUE,
+    freelancer_business_registration_number: input.freelancer_business_registration_number || DEFAULT_VALUE,
     jurisdiction: input.jurisdiction || DEFAULT_VALUE,
     project_type: input.project_type || DEFAULT_VALUE,
     scope_of_work: input.scope_of_work || DEFAULT_VALUE,
@@ -84,9 +96,12 @@ export function generateContract(input: ContractInput): ContractResult {
   // 1. PLAIN ENGLISH SUMMARY
   let summary = `1. PLAIN ENGLISH SUMMARY\n\n`;
   summary += `• Work Description: ${data.project_type}\n`;
+  summary += `• Client Contact Email: ${data.client_email}\n`;
   summary += `• Total Projected Cost: ${data.payment_model === "Hourly" ? data.hourly_rate + "/hr" : data.budget}\n`;
   summary += `• Expected Timeline: ${data.timeline}\n`;
   summary += `• Payment Terms: ${data.payment_terms}\n`;
+  summary += `• Freelancer Contact: ${data.freelancer_email} · ${data.freelancer_phone}\n`;
+  summary += `• Freelancer Entity: ${data.freelancer_business_name} (${data.freelancer_business_registration_number})\n`;
   summary += `• Revision Limit: ${type === "Design" ? "3 rounds" : "Standard (2 rounds)"}\n\n`;
   summary += `IMPORTANT: You must respond to the freelancer within 48 hours. If you don't response, the current milestone or work will be automatically approved to keep the project moving.\n`;
 
@@ -96,7 +111,13 @@ export function generateContract(input: ContractInput): ContractResult {
   contract += `State of ${data.jurisdiction}\n\n`;
   contract += `This agreement ("Agreement") is made effective as of ${data.effective_date} (the "Effective Date") by and between:\n\n`;
   contract += `CLIENT: ${data.client_name}, located at ${data.client_location}\n`;
+  contract += `CLIENT EMAIL: ${data.client_email}\n`;
   contract += `INDEPENDENT CONTRACTOR: ${data.freelancer_name}, located at ${data.freelancer_location}\n\n`;
+  contract += `CONTRACTOR EMAIL: ${data.freelancer_email}\n`;
+  contract += `CONTRACTOR PHONE: ${data.freelancer_phone}\n`;
+  contract += `CONTRACTOR BUSINESS: ${data.freelancer_business_name}\n`;
+  contract += `CONTRACTOR BUSINESS LOCATION: ${data.freelancer_business_location}\n`;
+  contract += `CONTRACTOR REGISTRATION NO: ${data.freelancer_business_registration_number}\n\n`;
 
   if (isDraft) {
     contract += `[DRAFT MODE ACTIVE]: This agreement becomes fully binding once all missing details are confirmed.\n\n`;

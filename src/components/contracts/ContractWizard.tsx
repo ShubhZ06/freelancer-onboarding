@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ChangeEvent } from "react";
 import {
   type ContractInput,
@@ -8,6 +8,7 @@ import {
   type FreelancerType,
   generateContract,
 } from "@/lib/contract-engine";
+import { useSessionUser } from "@/lib/use-session-user";
 import { ContractCanvas } from "./ContractCanvas";
 import { SendSignatureModal } from "./SendSignatureModal";
 
@@ -38,6 +39,7 @@ type ContractWizardProps = {
 };
 
 export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
+  const sessionUser = useSessionUser();
   const [step, setStep] = useState<Step>("input");
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>("Free");
   const [result, setResult] = useState<ContractResult | null>(null);
@@ -51,6 +53,84 @@ export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
 
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [showValidationHint, setShowValidationHint] = useState(false);
+  const freelancerEmail = String(formData.freelancer_email || sessionUser?.email || "").trim();
+  const freelancerPhone = String(formData.freelancer_phone || sessionUser?.phoneNumber || "").trim();
+  const freelancerBusinessName = String(
+    formData.freelancer_business_name ||
+    sessionUser?.businessName ||
+    sessionUser?.name ||
+    ""
+  ).trim();
+  const freelancerBusinessLocation = String(
+    formData.freelancer_business_location ||
+    sessionUser?.businessLocation ||
+    sessionUser?.location ||
+    ""
+  ).trim();
+  const freelancerBusinessRegistrationNumber = String(
+    formData.freelancer_business_registration_number ||
+    sessionUser?.businessRegistrationNumber ||
+    ""
+  ).trim();
+
+  const sessionProfileKey = [
+    sessionUser?.businessRegistrationNumber || "",
+    sessionUser?.businessLocation || "",
+    sessionUser?.businessName || "",
+    sessionUser?.location || "",
+    sessionUser?.name || "",
+    sessionUser?.email || "",
+    sessionUser?.phoneNumber || "",
+  ].join("|");
+
+  useEffect(() => {
+    const autoName =
+      sessionUser?.businessName?.trim() ||
+      sessionUser?.name?.trim() ||
+      "";
+    const autoLocation =
+      sessionUser?.businessLocation?.trim() ||
+      sessionUser?.location?.trim() ||
+      "";
+
+    if (!autoName && !autoLocation) {
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      freelancer_name: autoName || prev.freelancer_name || "Freelancer",
+      freelancer_location: autoLocation || prev.freelancer_location || "To be confirmed",
+      freelancer_email: sessionUser?.email?.trim() || prev.freelancer_email || "",
+      freelancer_phone: sessionUser?.phoneNumber?.trim() || prev.freelancer_phone || "",
+      freelancer_business_name:
+        sessionUser?.businessName?.trim() ||
+        prev.freelancer_business_name ||
+        autoName ||
+        "",
+      freelancer_business_location:
+        sessionUser?.businessLocation?.trim() ||
+        prev.freelancer_business_location ||
+        autoLocation ||
+        "",
+      freelancer_business_registration_number:
+        sessionUser?.businessRegistrationNumber?.trim() ||
+        prev.freelancer_business_registration_number ||
+        "",
+    }));
+
+    setErrors((prev) => {
+      const copy = { ...prev };
+      delete copy.freelancer_name;
+      delete copy.freelancer_location;
+      delete copy.freelancer_email;
+      delete copy.freelancer_phone;
+      delete copy.freelancer_business_name;
+      delete copy.freelancer_business_location;
+      delete copy.freelancer_business_registration_number;
+      return copy;
+    });
+  }, [sessionProfileKey]);
 
   function onChange(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     const { name, value } = e.target;
@@ -67,9 +147,8 @@ export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
   function validateInputStep() {
     const required = [
       "client_name",
+      "client_email",
       "client_location",
-      "freelancer_name",
-      "freelancer_location",
       "jurisdiction",
       "scope_of_work",
       formData.payment_model === "Fixed" ? "budget" : "hourly_rate",
@@ -87,6 +166,12 @@ export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
       if (!value || String(value).trim().length === 0) {
         nextErrors[key] = true;
       }
+    }
+
+    const clientEmail = String(formData.client_email || "").trim();
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (clientEmail && !emailPattern.test(clientEmail)) {
+      nextErrors.client_email = true;
     }
 
     setErrors(nextErrors);
@@ -174,6 +259,7 @@ export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
             contractId=""
             pdfBase64={documentBase64}
             initialClientName={formData.client_name || ""}
+            initialClientEmail={formData.client_email || ""}
             onClose={() => setShowModal(false)}
             onSendSuccess={handleModalSuccess}
           />
@@ -277,13 +363,15 @@ export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
                 <span className="inline-flex h-8 w-8 items-center justify-center border-[3px] border-black bg-white font-heading text-xs font-black">02</span>
                 <h3 className="font-heading text-2xl font-black uppercase tracking-tight">The Parties</h3>
               </div>
+              <p className="mt-2 text-sm font-bold text-black/80">
+                Your freelancer details are auto-filled from your account profile.
+              </p>
             </header>
             <div className="grid gap-5 p-5 md:grid-cols-2">
               {[
                 { name: "client_name", label: "Client name", placeholder: "Acme Corp" },
+                { name: "client_email", label: "Client email", placeholder: "client@acme.com" },
                 { name: "client_location", label: "Client location", placeholder: "San Francisco, CA" },
-                { name: "freelancer_name", label: "Your name", placeholder: "Alex Morgan" },
-                { name: "freelancer_location", label: "Your location", placeholder: "Brooklyn, NY" },
               ].map((field) => (
                 <label key={field.name} className="block space-y-2">
                   <span className="font-heading text-xs font-black uppercase tracking-[0.2em] text-black">
@@ -292,6 +380,7 @@ export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
                   </span>
                   <input
                     name={field.name}
+                    type={field.name === "client_email" ? "email" : "text"}
                     placeholder={field.placeholder}
                     value={(formData[field.name as keyof ContractInput] as string) || ""}
                     onChange={onChange}
@@ -299,6 +388,56 @@ export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
                   />
                 </label>
               ))}
+
+              <div className="border-4 border-black bg-[#fffdf5] p-4 md:col-span-2">
+                <p className="font-heading text-xs font-black uppercase tracking-[0.2em] text-black/70">
+                  Freelancer profile (auto)
+                </p>
+                <div className="mt-3 grid gap-3 md:grid-cols-2">
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-black/60">Name</p>
+                    <p className="font-bold text-black">
+                      {formData.freelancer_name || "Freelancer"}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-black/60">Location</p>
+                    <p className="font-bold text-black">
+                      {formData.freelancer_location || "To be confirmed"}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-black/60">Email</p>
+                    <p className="font-bold text-black">
+                      {freelancerEmail || "To be confirmed"}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-black/60">Phone number</p>
+                    <p className="font-bold text-black">
+                      {freelancerPhone || "To be confirmed"}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-black/60">Business name</p>
+                    <p className="font-bold text-black">
+                      {freelancerBusinessName || "To be confirmed"}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-black/60">Business location</p>
+                    <p className="font-bold text-black">
+                      {freelancerBusinessLocation || "To be confirmed"}
+                    </p>
+                  </div>
+                  <div className="space-y-1 md:col-span-2">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-black/60">Registration number</p>
+                    <p className="font-bold text-black">
+                      {freelancerBusinessRegistrationNumber || "To be confirmed"}
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
 

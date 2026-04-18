@@ -1,6 +1,11 @@
 export type AuthUser = {
   name: string;
   email: string;
+  location?: string;
+  phoneNumber?: string;
+  businessName?: string;
+  businessLocation?: string;
+  businessRegistrationNumber?: string;
 };
 
 type StoredUser = AuthUser & {
@@ -81,6 +86,62 @@ export function signInUser(email: string, password: string) {
 
   setSessionCookie(user);
   return { success: true as const, user };
+}
+
+export function updateUserProfile(nextUser: AuthUser) {
+  const email = nextUser.email.trim();
+  const name = nextUser.name.trim();
+
+  if (!name || name.length < 2) {
+    return { success: false as const, message: "Name must be at least 2 characters long." };
+  }
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return { success: false as const, message: "Enter a valid email address." };
+  }
+
+  const current = readSessionUser();
+  if (!current) {
+    return { success: false as const, message: "You must be signed in to update profile." };
+  }
+
+  const users = readUsers();
+  const currentIndex = users.findIndex(
+    (item) => item.email.toLowerCase() === current.email.toLowerCase()
+  );
+
+  if (currentIndex < 0) {
+    return { success: false as const, message: "Could not find your account record." };
+  }
+
+  const duplicate = users.find(
+    (item, index) => index !== currentIndex && item.email.toLowerCase() === email.toLowerCase()
+  );
+
+  if (duplicate) {
+    return { success: false as const, message: "An account with that email already exists." };
+  }
+
+  const merged: StoredUser = {
+    ...users[currentIndex],
+    ...nextUser,
+    name,
+    email,
+  };
+
+  users[currentIndex] = merged;
+  saveUsers(users);
+  setSessionCookie({
+    name: merged.name,
+    email: merged.email,
+    location: merged.location,
+    phoneNumber: merged.phoneNumber,
+    businessName: merged.businessName,
+    businessLocation: merged.businessLocation,
+    businessRegistrationNumber: merged.businessRegistrationNumber,
+  });
+
+  return { success: true as const, user: merged };
 }
 
 export function signOutUser() {
