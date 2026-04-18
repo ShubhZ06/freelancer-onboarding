@@ -14,110 +14,6 @@ import { SendSignatureModal } from "./SendSignatureModal";
 type Step = "input" | "template" | "generating" | "preview";
 type TemplateType = "Free" | "Premium" | "Modern Corporate";
 
-type SentData = { signingUrl: string; contractId: string | null; clientName: string; documentName: string };
-
-function sanitizePdfText(value: string) {
-  return value
-    .normalize("NFKD")
-    .replace(/[^\x00-\xFF]/g, "-")
-    .replace(/\\/g, "\\\\")
-    .replace(/\(/g, "\\(")
-    .replace(/\)/g, "\\)");
-}
-
-function buildGeneratedContractPdfBase64(documentName: string, summary: string, contract: string) {
-  const rows: string[] = [];
-
-  rows.push(`Document: ${documentName}`);
-  rows.push("");
-  rows.push("Plain English Summary");
-  rows.push(...summary.split("\n"));
-  rows.push("");
-  rows.push("Freelance Services Agreement");
-  rows.push(...contract.split("\n"));
-
-  const maxCharsPerLine = 92;
-  const wrapped: string[] = [];
-  for (const row of rows) {
-    const line = row.trimEnd();
-    if (!line) {
-      wrapped.push("");
-      continue;
-    }
-    let rest = line;
-    while (rest.length > maxCharsPerLine) {
-      wrapped.push(rest.slice(0, maxCharsPerLine));
-      rest = rest.slice(maxCharsPerLine);
-    }
-    wrapped.push(rest);
-  }
-
-  const linesPerPage = 50;
-  const pages: string[][] = [];
-  for (let i = 0; i < wrapped.length; i += linesPerPage) {
-    pages.push(wrapped.slice(i, i + linesPerPage));
-  }
-
-  const objects: string[] = [];
-
-  // 1: Catalog
-  objects.push(`1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n`);
-
-  // 2: Pages
-  const pageObjectIds: number[] = [];
-  for (let i = 0; i < pages.length; i += 1) {
-    pageObjectIds.push(3 + i * 2);
-  }
-  objects.push(
-    `2 0 obj\n<< /Type /Pages /Kids [${pageObjectIds.map((id) => `${id} 0 R`).join(" ")}] /Count ${pages.length} >>\nendobj\n`
-  );
-
-  // Pages + content streams
-  for (let i = 0; i < pages.length; i += 1) {
-    const pageObjId = 3 + i * 2;
-    const contentObjId = pageObjId + 1;
-
-    const lineOps: string[] = ["BT", "/F1 10 Tf", "72 780 Td"];
-    for (let j = 0; j < pages[i].length; j += 1) {
-      const safe = sanitizePdfText(pages[i][j]);
-      lineOps.push(`(${safe}) Tj`);
-      if (j < pages[i].length - 1) {
-        lineOps.push("0 -14 Td");
-      }
-    }
-    lineOps.push("ET");
-    const contentStream = lineOps.join("\n");
-
-    objects.push(
-      `${pageObjId} 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 ${3 + pages.length * 2} 0 R >> >> /Contents ${contentObjId} 0 R >>\nendobj\n`
-    );
-    objects.push(
-      `${contentObjId} 0 obj\n<< /Length ${contentStream.length} >>\nstream\n${contentStream}\nendstream\nendobj\n`
-    );
-  }
-
-  // Font object
-  const fontObjId = 3 + pages.length * 2;
-  objects.push(`${fontObjId} 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n`);
-
-  let pdf = "%PDF-1.4\n";
-  const offsets = [0];
-  for (const obj of objects) {
-    offsets.push(pdf.length);
-    pdf += obj;
-  }
-
-  const xrefStart = pdf.length;
-  pdf += `xref\n0 ${objects.length + 1}\n`;
-  pdf += "0000000000 65535 f \n";
-  for (let i = 1; i < offsets.length; i += 1) {
-    pdf += `${String(offsets[i]).padStart(10, "0")} 00000 n \n`;
-  }
-  pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefStart}\n%%EOF`;
-
-  return btoa(pdf);
-}
-
 const freelancerTypes: Array<{ id: FreelancerType; label: string; example: string; tone: string }> = [
   { id: "Software Development", label: "Web/App Dev", example: "Next.js web app", tone: "bg-[#ff6b6b]" },
   { id: "Design", label: "Designer", example: "Brand identity", tone: "bg-[#ffd93d]" },
@@ -130,7 +26,7 @@ const freelancerTypes: Array<{ id: FreelancerType; label: string; example: strin
 const paymentModels: Array<ContractInput["payment_model"]> = ["Fixed", "Hourly"];
 
 type ContractWizardProps = {
-  /** Called after a contract is successfully sent so the parent can add it to the list */
+  /** Optional callback for consumers that track sent contracts externally */
   onContractSent?: (contract: {
     id: string;
     title: string;
@@ -146,10 +42,7 @@ export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateType>("Free");
   const [result, setResult] = useState<ContractResult | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [sentData, setSentData] = useState<SentData | null>(null);
   const [documentBase64, setDocumentBase64] = useState("");
-  const [isPreparingDocument, setIsPreparingDocument] = useState(false);
-  const [documentPrepError, setDocumentPrepError] = useState("");
 
   const [formData, setFormData] = useState<ContractInput>({
     payment_model: "Fixed",
@@ -212,7 +105,6 @@ export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
   function startGeneration() {
     setStep("generating");
     setDocumentBase64("");
-    setDocumentPrepError("");
     setTimeout(() => {
       const generated = generateContract(formData);
       setResult({ ...generated, selectedTemplate });
@@ -220,25 +112,9 @@ export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
     }, 1300);
   }
 
-  // Opens the modal — the modal handles the API call
-  const handleSendForSignature = () => {
-    const documentName = `${formData.freelancer_type ?? "Freelance"} Agreement -- ${formData.client_name ?? "Client"}`;
-    if (result && !documentBase64) {
-      setIsPreparingDocument(true);
-      setDocumentPrepError("");
-      try {
-        const base64 = buildGeneratedContractPdfBase64(
-          documentName,
-          result.summary || "",
-          result.contract || ""
-        );
-        setDocumentBase64(base64);
-      } catch {
-        setDocumentPrepError("Could not prepare the generated contract PDF.");
-      } finally {
-        setIsPreparingDocument(false);
-      }
-    }
+  // Opens the modal with a PDF generated from the rendered React contract canvas
+  const handleSendForSignature = (generatedPdfBase64: string) => {
+    setDocumentBase64(generatedPdfBase64);
     setShowModal(true);
   };
 
@@ -251,15 +127,7 @@ export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
     clientEmail: string;
   }) => {
     const documentName = result ? `${formData.freelancer_type ?? "Freelance"} Agreement — ${formData.client_name ?? "Client"}` : "Contract";
-    setSentData({
-      signingUrl: data.signingUrl,
-      contractId: data.contractId,
-      clientName: data.clientName,
-      documentName,
-    });
-    setShowModal(false);
 
-    // Notify parent so it can prepend this contract to the 'Your contracts' list
     onContractSent?.({
       id: data.contractId ?? data.documentId,
       title: documentName,
@@ -299,27 +167,12 @@ export function ContractWizard({ onContractSent }: ContractWizardProps = {}) {
           onSend={handleSendForSignature}
         />
 
-        {sentData && (
-          <div className="mt-6 border-4 border-black bg-[#c4b5fd] px-5 py-4 neo-shadow-sm">
-            <p className="text-base font-bold text-black">
-              ✓ Sent <span className="font-heading font-black">{sentData.documentName}</span> to{" "}
-              <span className="font-heading font-black">{sentData.clientName}</span>. Status is now{" "}
-              <span className="inline-flex items-center border-[3px] border-black bg-black px-2 py-0.5 text-xs font-black uppercase tracking-widest text-[#ffd93d]">
-                Sent
-              </span>{" "}
-              in Your Contracts.
-            </p>
-          </div>
-        )}
-
         {/* Send Signature Modal */}
         {showModal && (
           <SendSignatureModal
             documentName={documentName}
             contractId=""
             pdfBase64={documentBase64}
-            isPreparingDocument={isPreparingDocument}
-            documentPrepError={documentPrepError}
             initialClientName={formData.client_name || ""}
             onClose={() => setShowModal(false)}
             onSendSuccess={handleModalSuccess}

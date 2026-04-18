@@ -14,6 +14,7 @@
  *       clientName:        string
  *       clientEmail:       string
  *       userId:            string
+ *       signingUrl:        string | null
  *       completedAt:       string | null   (ISO-8601 when signed, else null)
  *       updatedAt:         string | null   (ISO-8601)
  *       createdAt:         string | null   (ISO-8601)
@@ -55,6 +56,7 @@ export async function GET() {
             clientName: 1,
             clientEmail: 1,
             userId: 1,
+            signingUrl: 1,
             completedAt: 1,
             updatedAt: 1,
             createdAt: 1,

@@ -1,6 +1,8 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import html2canvas from "html2canvas-pro";
+import { jsPDF } from "jspdf";
 import type { ContractResult } from "@/lib/contract-engine";
 
 type TemplateType = "Free" | "Premium" | "Modern Corporate";
@@ -10,55 +12,193 @@ type Props = {
   templateType: TemplateType;
   onBack: () => void;
   onGenerateAnother: () => void;
-  onSend: () => void;
+  onSend: (pdfBase64: string) => void;
 };
 
-function downloadPdf(canvasEl: HTMLElement | null, title: string) {
-  if (!canvasEl) return;
-  const printWindow = window.open("", "_blank", "width=900,height=1100");
-  if (!printWindow) {
-    alert("Please allow pop-ups to download the PDF.");
-    return;
+function isCanvasLikelyBlank(canvas: HTMLCanvasElement): boolean {
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx) {
+    return false;
   }
 
-  const styleSheets = Array.from(document.styleSheets)
-    .map((sheet) => {
-      try {
-        return Array.from(sheet.cssRules).map((r) => r.cssText).join("\n");
-      } catch {
-        return sheet.href ? `@import url("${sheet.href}");` : "";
-      }
-    })
-    .join("\n");
+  const cols = 12;
+  const rows = 12;
+  let nonWhiteSamples = 0;
 
-  printWindow.document.write(`<!doctype html>
-<html>
-<head>
-<meta charset="utf-8" />
-<title>${title}</title>
-<style>${styleSheets}</style>
-<style>
-  @page { size: A4; margin: 16mm; }
-  html, body { margin: 0; padding: 0; background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  body { font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; }
-  .pdf-root { padding: 0; background: white !important; }
-  .pdf-root > * { background: transparent !important; padding: 0 !important; }
-</style>
-</head>
-<body>
-  <div class="pdf-root">${canvasEl.outerHTML}</div>
-  <script>
-    window.addEventListener('load', function() {
-      setTimeout(function() {
-        window.focus();
-        window.print();
-        setTimeout(function() { window.close(); }, 300);
-      }, 400);
+  for (let y = 0; y < rows; y += 1) {
+    for (let x = 0; x < cols; x += 1) {
+      const px = Math.floor((x / (cols - 1)) * (canvas.width - 1));
+      const py = Math.floor((y / (rows - 1)) * (canvas.height - 1));
+      const data = ctx.getImageData(px, py, 1, 1).data;
+      const isWhite = data[0] > 245 && data[1] > 245 && data[2] > 245 && data[3] > 245;
+      if (!isWhite) {
+        nonWhiteSamples += 1;
+        if (nonWhiteSamples >= 4) {
+          return false;
+        }
+      }
+    }
+  }
+
+  return true;
+}
+
+async function buildRenderedCanvasPdfBase64(articleEl: HTMLElement): Promise<string> {
+  if (document.fonts?.ready) {
+    await document.fonts.ready.catch(() => {
+      // Continue with fallback browser fonts if readiness fails.
     });
-  </script>
-</body>
-</html>`);
-  printWindow.document.close();
+  }
+
+  const sourceRect = articleEl.getBoundingClientRect();
+  const sourceWidth = Math.max(1, Math.floor(sourceRect.width || articleEl.scrollWidth));
+
+  const host = document.createElement("div");
+  host.style.position = "fixed";
+  host.style.left = "-20000px";
+  host.style.top = "0";
+  host.style.width = `${sourceWidth}px`;
+  host.style.background = "#ffffff";
+  host.style.zIndex = "-1";
+  host.style.pointerEvents = "none";
+
+  const freezeStyle = document.createElement("style");
+  freezeStyle.textContent = `
+    .pdf-capture-root, .pdf-capture-root * {
+      animation: none !important;
+      transition: none !important;
+      caret-color: transparent !important;
+    }
+  `;
+
+  const clone = articleEl.cloneNode(true) as HTMLElement;
+  clone.classList.add("pdf-capture-root");
+  clone.style.margin = "0";
+
+  host.appendChild(freezeStyle);
+  host.appendChild(clone);
+  document.body.appendChild(host);
+
+  await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+  await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
+  const cloneWidth = Math.max(1, Math.ceil(clone.scrollWidth));
+  const cloneHeight = Math.max(1, Math.ceil(clone.scrollHeight));
+  const maxDim = Math.max(cloneWidth, cloneHeight);
+  const safeScale = Math.min(2, Math.max(0.75, 8192 / maxDim));
+
+  const attempts = [
+    { foreignObjectRendering: false, useCORS: true },
+    { foreignObjectRendering: true, useCORS: true },
+  ];
+
+  let snapshot: HTMLCanvasElement | null = null;
+  let lastError: unknown = null;
+
+  try {
+    for (const attempt of attempts) {
+      try {
+        const candidate = await html2canvas(clone, {
+          scale: safeScale,
+          useCORS: attempt.useCORS,
+          allowTaint: true,
+          foreignObjectRendering: attempt.foreignObjectRendering,
+          backgroundColor: "#ffffff",
+          logging: false,
+          width: cloneWidth,
+          height: cloneHeight,
+          scrollX: 0,
+          scrollY: 0,
+          windowWidth: cloneWidth,
+          windowHeight: cloneHeight,
+        });
+
+        if (candidate.width === 0 || candidate.height === 0) {
+          throw new Error("Captured canvas has zero dimensions.");
+        }
+
+        if (isCanvasLikelyBlank(candidate)) {
+          throw new Error("Captured canvas appears blank.");
+        }
+
+        snapshot = candidate;
+        break;
+      } catch (err) {
+        lastError = err;
+      }
+    }
+  } finally {
+    host.remove();
+  }
+
+  if (!snapshot) {
+    throw lastError instanceof Error
+      ? lastError
+      : new Error("Unable to render contract canvas into PDF image.");
+  }
+
+  if (snapshot.width === 0 || snapshot.height === 0) {
+    throw new Error("Rendered contract snapshot is empty.");
+  }
+
+  const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const pageWidthMm = pdf.internal.pageSize.getWidth();
+  const pageHeightMm = pdf.internal.pageSize.getHeight();
+
+  const pageHeightPx = Math.floor((snapshot.width * pageHeightMm) / pageWidthMm);
+  if (pageHeightPx <= 0) {
+    throw new Error("Invalid page slice height for PDF generation.");
+  }
+
+  const pageCanvas = document.createElement("canvas");
+  const ctx = pageCanvas.getContext("2d");
+  if (!ctx) {
+    throw new Error("Could not initialize canvas context for PDF generation.");
+  }
+
+  let yOffset = 0;
+  let pageIndex = 0;
+
+  while (yOffset < snapshot.height) {
+    const currentSliceHeight = Math.min(pageHeightPx, snapshot.height - yOffset);
+    pageCanvas.width = snapshot.width;
+    pageCanvas.height = currentSliceHeight;
+
+    ctx.clearRect(0, 0, pageCanvas.width, pageCanvas.height);
+    ctx.drawImage(
+      snapshot,
+      0,
+      yOffset,
+      snapshot.width,
+      currentSliceHeight,
+      0,
+      0,
+      snapshot.width,
+      currentSliceHeight
+    );
+
+    if (pageIndex > 0) {
+      pdf.addPage();
+    }
+
+    const imageData = pageCanvas.toDataURL("image/png");
+    const renderHeightMm = (currentSliceHeight * pageWidthMm) / snapshot.width;
+    pdf.addImage(imageData, "PNG", 0, 0, pageWidthMm, renderHeightMm, undefined, "FAST");
+
+    yOffset += currentSliceHeight;
+    pageIndex += 1;
+  }
+
+  return pdf.output("datauristring");
+}
+
+function downloadPdfFromDataUri(pdfDataUri: string, filename: string) {
+  const link = document.createElement("a");
+  link.href = pdfDataUri;
+  link.download = filename.endsWith(".pdf") ? filename : `${filename}.pdf`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
 }
 
 function splitContractLines(contract: string) {
@@ -84,12 +224,42 @@ function parseSections(lines: string[]) {
   return sections;
 }
 
+function stripTemplateDuplicateSignatureSections(
+  sections: Array<{ heading: string; body: string[] }>
+) {
+  return sections.filter((section) => {
+    const heading = section.heading.toUpperCase();
+    const normalizedHeading = heading.replace(/[^A-Z\s]/g, " ").replace(/\s+/g, " ").trim();
+
+    // Each template already renders a dedicated signature block at the bottom,
+    // so we remove signature/acknowledgment sections from the generated body.
+    if (normalizedHeading.includes("SIGNATURE")) {
+      return false;
+    }
+
+    if (
+      normalizedHeading.includes("ACKNOWLEDGMENT") ||
+      normalizedHeading.includes("ACKNOWLEDGEMENT") ||
+      normalizedHeading.includes("EXECUTION")
+    ) {
+      return false;
+    }
+
+    return true;
+  });
+}
+
 function ActionBar({
   onBack,
   onGenerateAnother,
   onSend,
   onDownload,
-}: Pick<Props, "onBack" | "onGenerateAnother" | "onSend"> & { onDownload: () => void }) {
+  isPreparingPdf,
+}: Pick<Props, "onBack" | "onGenerateAnother"> & {
+  onSend: () => void;
+  onDownload: () => void;
+  isPreparingPdf: boolean;
+}) {
   return (
     <div className="no-print flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
       <button
@@ -122,9 +292,10 @@ function ActionBar({
         <button
           type="button"
           onClick={onSend}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+          disabled={isPreparingPdf}
+          className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Send for Signature <span aria-hidden>→</span>
+          {isPreparingPdf ? "Preparing PDF..." : <>Send for Signature <span aria-hidden>→</span></>}
         </button>
       </div>
     </div>
@@ -132,7 +303,9 @@ function ActionBar({
 }
 
 function FreeDocument({ result }: { result: ContractResult }) {
-  const sections = parseSections(splitContractLines(result.contract));
+  const sections = stripTemplateDuplicateSignatureSections(
+    parseSections(splitContractLines(result.contract))
+  );
   const title = sections[0]?.heading ?? "Freelance Services Agreement";
   const rest = sections.slice(1);
 
@@ -185,7 +358,9 @@ function FreeDocument({ result }: { result: ContractResult }) {
 }
 
 function PremiumDocument({ result }: { result: ContractResult }) {
-  const sections = parseSections(splitContractLines(result.contract));
+  const sections = stripTemplateDuplicateSignatureSections(
+    parseSections(splitContractLines(result.contract))
+  );
   const title = sections[0]?.heading ?? "Freelance Services Agreement";
   const rest = sections.slice(1);
   const docId = result.detectedType.slice(0, 3).toUpperCase() + "-" + Math.abs(hashString(result.contract)).toString(16).slice(0, 6).toUpperCase();
@@ -330,7 +505,9 @@ function PremiumDocument({ result }: { result: ContractResult }) {
 }
 
 function CorporateDocument({ result }: { result: ContractResult }) {
-  const sections = parseSections(splitContractLines(result.contract));
+  const sections = stripTemplateDuplicateSignatureSections(
+    parseSections(splitContractLines(result.contract))
+  );
   const title = sections[0]?.heading ?? "Professional Services Agreement";
   const rest = sections.slice(1);
   const docId = "PSA-" + Math.abs(hashString(result.contract)).toString(16).slice(0, 8).toUpperCase();
@@ -440,11 +617,41 @@ function hashString(s: string) {
 
 export function ContractCanvas({ result, templateType, onBack, onGenerateAnother, onSend }: Props) {
   const canvasRef = useRef<HTMLDivElement>(null);
+  const [isPreparingPdf, setIsPreparingPdf] = useState(false);
 
-  const handleDownload = () => {
-    const articleEl = canvasRef.current?.querySelector("article");
-    const title = `${templateType}-Agreement-${result.detectedType.replace(/\s+/g, "-")}`;
-    downloadPdf(articleEl as HTMLElement | null, title);
+  const getCurrentContractPdf = async () => {
+    const articleEl = canvasRef.current?.querySelector("article") as HTMLElement | null;
+    if (!articleEl) {
+      throw new Error("Unable to find the contract canvas to generate PDF.");
+    }
+    return buildRenderedCanvasPdfBase64(articleEl);
+  };
+
+  const handleDownload = async () => {
+    setIsPreparingPdf(true);
+    try {
+      const pdfBase64 = await getCurrentContractPdf();
+      const title = `${templateType}-Agreement-${result.detectedType.replace(/\s+/g, "-")}`;
+      downloadPdfFromDataUri(pdfBase64, title);
+    } catch (err) {
+      console.error("[ContractCanvas] Could not generate PDF for download", err);
+      alert("Could not generate the contract PDF for download. Please try again.");
+    } finally {
+      setIsPreparingPdf(false);
+    }
+  };
+
+  const handleSend = async () => {
+    setIsPreparingPdf(true);
+    try {
+      const pdfBase64 = await getCurrentContractPdf();
+      onSend(pdfBase64);
+    } catch (err) {
+      console.error("[ContractCanvas] Could not convert contract canvas to PDF", err);
+      alert("Could not convert the contract canvas to PDF. Please try again.");
+    } finally {
+      setIsPreparingPdf(false);
+    }
   };
 
   return (
@@ -452,8 +659,9 @@ export function ContractCanvas({ result, templateType, onBack, onGenerateAnother
       <ActionBar
         onBack={onBack}
         onGenerateAnother={onGenerateAnother}
-        onSend={onSend}
+        onSend={handleSend}
         onDownload={handleDownload}
+        isPreparingPdf={isPreparingPdf}
       />
       <div ref={canvasRef} className="rounded-2xl bg-gradient-to-b from-slate-50 to-slate-100 p-6 sm:p-10">
         {templateType === "Free" && <FreeDocument result={result} />}
