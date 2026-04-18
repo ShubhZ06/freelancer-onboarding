@@ -197,11 +197,6 @@ npm run test:watch
 - auth/session is currently local-storage + cookie based for MVP behavior
 - several integrations degrade gracefully when not configured (for example preview/demo behavior)
 
-## Known MVP Constraints
-
-- auth is not yet production-grade identity management
-- some modules still include demo-oriented data paths
-- expenses module is currently informational placeholder UI
 
 ## Repository Layout (High Level)
 
