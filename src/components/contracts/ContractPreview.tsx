@@ -135,7 +135,7 @@ export function ContractPreview({ result, templateType, onSend }: Props) {
 
         {(isPremium || isCorporate) && (
           <div className="mt-10 flex justify-between border-t-4 border-black pt-6 font-heading text-[10px] font-black uppercase tracking-[0.3em] text-black">
-            <span>© 2026 {isCorporate ? "Corporate Legal Entity" : "FreelancerOS Legal Engine"}</span>
+            <span>© 2026 {isCorporate ? "Corporate Legal Entity" : "FlowDesk Legal Engine"}</span>
             <span>Document Protected</span>
           </div>
         )}

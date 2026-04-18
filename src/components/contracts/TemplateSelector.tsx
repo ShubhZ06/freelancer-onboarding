@@ -75,7 +75,7 @@ const PremiumPreview: React.FC<{ scrollY: number }> = ({ scrollY }) => (
       ))}
     </div>
     <div className="pt-4 border-t border-slate-200 flex justify-between">
-      <div className="text-[5px] text-slate-300 uppercase tracking-[0.3em]">© 2026 FreelancerOS</div>
+      <div className="text-[5px] text-slate-300 uppercase tracking-[0.3em]">© 2026 FlowDesk</div>
       <div className="text-[5px] text-slate-300 uppercase tracking-[0.3em]">Confidential</div>
     </div>
   </div>

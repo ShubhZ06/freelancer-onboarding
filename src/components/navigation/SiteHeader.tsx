@@ -26,7 +26,7 @@ export function SiteHeader() {
             className="group inline-flex items-center gap-2 border-4 border-black bg-[#ff6b6b] px-3 py-2 neo-shadow-sm transition-transform duration-100 hover:-translate-y-0.5 hover:-translate-x-0.5 hover:shadow-[6px_6px_0_0_#000] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
           >
             <span className="font-heading text-lg uppercase tracking-tight text-black sm:text-xl">
-              Freelancer/OS
+              FlowDesk
             </span>
             <span aria-hidden className="inline-block h-2 w-2 bg-black" />
           </Link>

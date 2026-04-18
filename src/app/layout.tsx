@@ -18,7 +18,7 @@ const bodyFont = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Freelancer OS — Run Client Work Without The Chaos",
+  title: "FlowDesk — Run Client Work Without The Chaos",
   description: "The punk operating system for independent professionals. Leads, contracts, signatures, updates, expenses — all in one loud place.",
 };
 

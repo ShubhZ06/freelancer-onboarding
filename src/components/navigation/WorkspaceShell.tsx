@@ -2,8 +2,8 @@ import type { ReactNode } from "react";
 
 export function WorkspaceShell({
   children,
-  eyebrow = "FOS / Workspace",
-  title = "Freelancer Workspace",
+  eyebrow = "FlowDesk / Workspace",
+  title = "FlowDesk Workspace",
   description = "Focused pages for daily operations.",
 }: {
   children: ReactNode;

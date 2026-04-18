@@ -56,7 +56,7 @@ export default function Home() {
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
           <div className="inline-flex items-center gap-2 border-4 border-black bg-[#ff6b6b] px-3 py-2 neo-shadow-sm">
             <span className="font-heading text-lg uppercase tracking-tight text-black sm:text-xl">
-              Freelancer/OS
+              FlowDesk
             </span>
             <span aria-hidden className="inline-block h-2 w-2 bg-black" />
           </div>
@@ -395,7 +395,7 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <span className="inline-flex items-center gap-2 border-4 border-black bg-white px-3 py-2 neo-shadow-sm">
               <span className="font-heading text-lg font-black uppercase tracking-tight text-black">
-                Freelancer/OS
+                FlowDesk
               </span>
               <span aria-hidden className="inline-block h-2 w-2 bg-black" />
             </span>

@@ -1,8 +1,8 @@
-# Freelancer Operating System (FOS)
+# FlowDesk
 
 A full-stack freelancer workspace built with Next.js App Router.
 
-FOS combines the most common freelancer workflows in one product:
+FlowDesk combines the most common freelancer workflows in one product:
 
 - find client opportunities
 - generate contracts

@@ -384,7 +384,7 @@ export default function ContractSigningPage() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 text-xs text-slate-400 sm:px-6 lg:px-8">
           <span>Powered by Documenso • End-to-end secure</span>
           <span className="hidden sm:inline">
-            Freelancer Operating System
+            FlowDesk
           </span>
         </div>
       </footer>
