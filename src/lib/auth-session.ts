@@ -47,8 +47,22 @@ function setSessionCookie(user: AuthUser) {
   window.dispatchEvent(new Event(SESSION_USER_EVENT));
 }
 
+function hasFosSessionCookie(): boolean {
+  if (!canUseStorage()) return false;
+  return document.cookie
+    .split(";")
+    .some((c) => c.trim().startsWith(`${SESSION_COOKIE}=`));
+}
+
 export function readSessionUser(): AuthUser | null {
   if (!canUseStorage()) return null;
+
+  // If the session cookie is gone (expired / cleared) but stale data
+  // remains in localStorage, treat the user as signed-out and clean up.
+  if (!hasFosSessionCookie()) {
+    window.localStorage.removeItem(SESSION_USER_KEY);
+    return null;
+  }
 
   try {
     const raw = window.localStorage.getItem(SESSION_USER_KEY);

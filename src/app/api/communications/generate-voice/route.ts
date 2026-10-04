@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateVoice } from "@/lib/messaging";
 import { readJsonBody } from "@/lib/http/read-json-body";
 
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 export type GenerateVoiceBody = {
   text: string;
 };
@@ -9,7 +12,7 @@ export type GenerateVoiceBody = {
 export async function POST(req: NextRequest): Promise<Response> {
   if (!process.env.ELEVENLABS_API_KEY || !process.env.ELEVENLABS_VOICE_ID) {
     return NextResponse.json(
-      { success: false, error: "ELEVENLABS_API_KEY and ELEVENLABS_VOICE_ID must be set in .env.local" },
+      { success: false, error: "ELEVENLABS_API_KEY and ELEVENLABS_VOICE_ID environment variables are not configured" },
       { status: 503 }
     );
   }

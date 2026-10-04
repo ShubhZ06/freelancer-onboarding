@@ -1,10 +1,10 @@
-﻿import { MongoClient, type Db } from "mongodb";
+import { MongoClient, type Db } from "mongodb";
 
 const uri = process.env.MONGODB_URI;
 
-if (!uri && process.env.NODE_ENV === "development") {
+if (!uri) {
   console.warn(
-    "[mongodb] MONGODB_URI is not set — lead persistence will be skipped.",
+    "[mongodb] MONGODB_URI is not set — DB-backed features (leads, contracts, payments) will be skipped.",
   );
 }
 
