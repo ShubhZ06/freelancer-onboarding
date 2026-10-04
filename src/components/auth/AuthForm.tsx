@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { readSessionUser, registerUser, signInUser } from "@/lib/auth-session";
+import { readSessionUser, setClientSession } from "@/lib/auth-session";
+import type { AuthUser } from "@/lib/auth-session";
 
 type Mode = "sign-in" | "sign-up";
 
@@ -127,39 +128,63 @@ export function AuthForm({ mode }: Props) {
 
       setPending(true);
 
-      const result = registerUser(
-        {
-          name: signUpData.name.trim(),
-          email: signUpData.email.trim(),
-          location: signUpData.location.trim(),
-          phoneNumber: signUpData.phoneNumber.trim(),
-          businessName: signUpData.businessName.trim(),
-          businessLocation: signUpData.businessLocation.trim(),
-          businessRegistrationNumber: signUpData.businessRegistrationNumber.trim(),
-        },
-        signUpData.password
-      );
+      try {
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: signUpData.name.trim(),
+            email: signUpData.email.trim(),
+            location: signUpData.location.trim(),
+            phoneNumber: signUpData.phoneNumber.trim(),
+            password: signUpData.password,
+            businessName: signUpData.businessName.trim(),
+            businessLocation: signUpData.businessLocation.trim(),
+            businessRegistrationNumber: signUpData.businessRegistrationNumber.trim(),
+          }),
+        });
+        const data = await res.json() as { success: boolean; message?: string; user?: AuthUser };
 
-      if (!result.success) {
-        setError(result.message);
+        if (!data.success || !data.user) {
+          setError(data.message ?? "Registration failed. Please try again.");
+          setPending(false);
+          return;
+        }
+
+        setClientSession(data.user);
+        router.push(nextPath);
+      } catch {
+        setError("Network error — please check your connection and try again.");
         setPending(false);
-        return;
       }
-
-      router.push(nextPath);
       return;
     }
 
     setPending(true);
 
-    const result = signInUser(signInData.email.trim(), signInData.password);
-    if (!result.success) {
-      setError(result.message);
-      setPending(false);
-      return;
-    }
+    try {
+      const res = await fetch("/api/auth/sign-in", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: signInData.email.trim(),
+          password: signInData.password,
+        }),
+      });
+      const data = await res.json() as { success: boolean; message?: string; user?: AuthUser };
 
-    router.push(nextPath);
+      if (!data.success || !data.user) {
+        setError(data.message ?? "Invalid email or password.");
+        setPending(false);
+        return;
+      }
+
+      setClientSession(data.user);
+      router.push(nextPath);
+    } catch {
+      setError("Network error — please check your connection and try again.");
+      setPending(false);
+    }
   }
 
   const isSignUp = mode === "sign-up";

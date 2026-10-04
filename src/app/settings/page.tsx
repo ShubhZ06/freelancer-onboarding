@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { AuthBar } from "@/components/auth/AuthBar";
 import { WorkspaceShell } from "@/components/navigation";
 import { PageSection } from "@/components/workspace";
-import { type AuthUser, updateUserProfile } from "@/lib/auth-session";
+import { type AuthUser, setClientSession } from "@/lib/auth-session";
 import { useSessionUser } from "@/lib/use-session-user";
 
 type ProfileForm = {
@@ -104,7 +104,7 @@ export default function SettingsPage() {
     }
   }
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (pending) {
       return;
@@ -120,24 +120,36 @@ export default function SettingsPage() {
     }
 
     setPending(true);
-    const result = updateUserProfile({
-      name: form.name.trim(),
-      email: form.email.trim(),
-      location: form.location.trim(),
-      phoneNumber: form.phoneNumber.trim(),
-      businessName: form.businessName.trim(),
-      businessLocation: form.businessLocation.trim(),
-      businessRegistrationNumber: form.businessRegistrationNumber.trim(),
-    });
 
-    if (!result.success) {
-      setError(result.message);
+    try {
+      const res = await fetch("/api/auth/update-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name.trim(),
+          email: form.email.trim(),
+          location: form.location.trim(),
+          phoneNumber: form.phoneNumber.trim(),
+          businessName: form.businessName.trim(),
+          businessLocation: form.businessLocation.trim(),
+          businessRegistrationNumber: form.businessRegistrationNumber.trim(),
+        } satisfies AuthUser),
+      });
+      const data = await res.json() as { success: boolean; message?: string; user?: AuthUser };
+
+      if (!data.success || !data.user) {
+        setError(data.message ?? "Failed to update profile. Please try again.");
+        setPending(false);
+        return;
+      }
+
+      setClientSession(data.user);
+      setSuccess("Profile updated successfully.");
+    } catch {
+      setError("Network error — please check your connection and try again.");
+    } finally {
       setPending(false);
-      return;
     }
-
-    setSuccess("Profile updated successfully.");
-    setPending(false);
   }
 
   return (

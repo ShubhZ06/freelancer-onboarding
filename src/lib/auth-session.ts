@@ -37,7 +37,7 @@ function saveUsers(users: StoredUser[]) {
   window.localStorage.setItem(USERS_KEY, JSON.stringify(users));
 }
 
-function setSessionCookie(user: AuthUser) {
+export function setClientSession(user: AuthUser) {
   if (!canUseStorage()) return;
 
   const expires = new Date();
@@ -46,6 +46,12 @@ function setSessionCookie(user: AuthUser) {
   window.localStorage.setItem(SESSION_USER_KEY, JSON.stringify(user));
   window.dispatchEvent(new Event(SESSION_USER_EVENT));
 }
+
+/** @internal kept for legacy callers within this module */
+function setSessionCookie(user: AuthUser) {
+  setClientSession(user);
+}
+
 
 function hasFosSessionCookie(): boolean {
   if (!canUseStorage()) return false;
